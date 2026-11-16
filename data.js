@@ -20,7 +20,7 @@ const LAST_UPDATED = "2026-11-16";
                     Leave "" to hide the WhatsApp button.               */
 const SITE = {
   FORM_ENDPOINT: "",
-  CONTACT_EMAIL: "",
+  CONTACT_EMAIL: "orevision.asw.eg@outlook.com",
   WHATSAPP_NUMBER: "",
   QUOTE_VALID_DAYS: 14,
   PACKAGING: ["Bulk vessel", "Big bags (1–1.5 t)", "25 kg bags on pallets"],
