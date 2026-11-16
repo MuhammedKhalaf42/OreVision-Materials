@@ -174,13 +174,13 @@ const PRODUCTS = [
     category: "Metallic Ores",
     grade: "Fe 58–60%",
     origin: "Bahariya Oasis, Egypt",
-    basePrice: 98,
+    basePrice: 68,
     unit: "t",
     moq: 1000,
     stock: 45000,
     icon: "⬣",
     uses: "Steel production",
-    trend: [105, 103, 101, 100, 99, 98, 98],
+    trend: [73, 71, 70, 69, 69, 68, 68],
   },
   {
     id: "manganese",
@@ -210,19 +210,35 @@ const PRODUCTS = [
     uses: "Cement, lime, steel flux",
     trend: [28, 28, 28, 29, 29, 29, 29],
   },
+  {
+    id: "iron-oxide-powder",
+    name: "Iron Oxide Powder (Natural Red)",
+    category: "Industrial Minerals",
+    grade: "Fe2O3 ≥ 85%, 325 mesh",
+    origin: "Egypt",
+    basePrice: 260,
+    unit: "t",
+    moq: 25,
+    stock: 2000,
+    icon: "●",
+    uses: "Cement & concrete coloring, ceramics, primers",
+    trend: [260, 260],
+  },
 ];
 
-/* Global commodity benchmarks shown in the market ticker/table.
-   Source: indicative exchange & trade-press levels. */
+/* Reference prices shown in the ticker and the Global Prices table.
+   Each entry has either `price` (a single figure) or `range` (text such
+   as "300–800"), plus `asOf` and `source` so buyers can see how current
+   and where each number comes from. Update these by hand; there is no
+   free live feed for these materials. */
 const BENCHMARKS = [
-  { name: "Copper (LME)", price: 10850, unit: "USD/t", change: +1.2 },
-  { name: "Gold (COMEX)", price: 4120, unit: "USD/oz", change: +0.4 },
-  { name: "Iron Ore 62% Fe (CFR China)", price: 104, unit: "USD/t", change: -0.8 },
-  { name: "Aluminium (LME)", price: 2740, unit: "USD/t", change: +0.3 },
-  { name: "Zinc (LME)", price: 2950, unit: "USD/t", change: -0.5 },
-  { name: "Phosphate Rock (Morocco FOB)", price: 155, unit: "USD/t", change: -0.2 },
-  { name: "TiO2 Feedstock Index", price: 348, unit: "USD/t", change: +0.6 },
-  { name: "Silica Sand (Glass, FOB)", price: 61, unit: "USD/t", change: +0.1 },
+  { name: "Iron Ore 62% Fe (CFR China)", price: 91.48, unit: "USD/t", asOf: "13 Nov 2026", source: "Trading Economics" },
+  { name: "Iron Ore 58% Fe (CFR China)", price: 85, unit: "USD/t", asOf: "Nov 2026 (est.)", source: "Estimated from the usual 58%/62% spread" },
+  { name: "Natural Red Iron Oxide Powder", range: "300–800", unit: "USD/t", asOf: "Mar 2026", source: "Indian supplier quotes (TradeIndia)" },
+  { name: "Iron Oxide Red Pigment (China FOB)", range: "800–1,200", unit: "USD/t", asOf: "Nov 2026", source: "IndexBox market report, construction grade" },
+  { name: "Phosphate Rock (Morocco)", price: 156.9, unit: "USD/t", asOf: "Jun 2026", source: "World Bank" },
+  { name: "Ilmenite (Malaysia)", price: 273, unit: "USD/t", asOf: "Sep 2026", source: "IMARC" },
+  { name: "Silica Sand (Egypt FOB)", range: "40–135", unit: "USD/t", asOf: "2026", source: "Egyptian supplier quotes, by grade" },
 ];
 
-const USD_TO_EGP = 48.6; // indicative rate, update as needed
+const USD_TO_EGP = 53.74; // fallback only — the site fetches the live rate on load

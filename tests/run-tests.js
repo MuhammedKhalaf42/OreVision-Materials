@@ -66,6 +66,12 @@ console.log("Data integrity");
     const ids = run("PRODUCTS.map(p => p.id)");
     eq(ids.filter((id) => !fs.existsSync(path.join(root, "images", id + ".jpg"))), []);
   });
+  test("every reference price has a name, a price or range, a date and a source", () => {
+    eq(run(`BENCHMARKS.filter(b => !b.name || !(b.price > 0 || b.range) || !b.asOf || !b.source).map(b => b.name)`), []);
+  });
+  test("no precious metals in the reference prices or the catalog", () => {
+    eq(run(`[...BENCHMARKS.map(b => b.name), ...PRODUCTS.map(p => p.name)].filter(n => /gold|silver|platinum|palladium/i.test(n))`), []);
+  });
   test("every photo has a credits entry", () => {
     const credits = JSON.parse(read("images/credits.json")).map((c) => c.id);
     const files = fs.readdirSync(path.join(root, "images")).filter((f) => f.endsWith(".jpg")).map((f) => f.replace(".jpg", ""));

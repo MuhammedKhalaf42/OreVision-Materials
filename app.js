@@ -62,10 +62,19 @@ function normalizeData() {
     const trend = (Array.isArray(p.trend) ? p.trend : []).map(Number).filter((v) => Number.isFinite(v) && v > 0);
     p.trend = trend.length >= 2 ? trend : [p.basePrice || 1, p.basePrice || 1];
   }
-  BENCHMARKS.forEach((b) => {
-    b.price = Number(b.price) || 0;
-    b.base = b.price; // static reference used to sanity-check live values
-  });
+  for (let i = BENCHMARKS.length - 1; i >= 0; i--) {
+    const b = BENCHMARKS[i];
+    const hasPrice = b && Number.isFinite(Number(b.price)) && Number(b.price) > 0;
+    if (!b || !b.name || (!hasPrice && !b.range)) {
+      console.warn("data.js: dropped a benchmark without a name and price/range at position", i);
+      BENCHMARKS.splice(i, 1);
+      continue;
+    }
+    b.price = hasPrice ? Number(b.price) : null;
+    b.unit = b.unit || "";
+    b.asOf = b.asOf || "";
+    b.source = b.source || "";
+  }
   TIERS = (Array.isArray(SITE.DISCOUNT_TIERS) ? SITE.DISCOUNT_TIERS : [])
     .filter((x) => x && Number(x.mult) > 0 && Number(x.pct) > 0 && Number(x.pct) < 100)
     .map((x) => ({ mult: Number(x.mult), pct: Number(x.pct) }))
@@ -192,36 +201,30 @@ function artSVG(p) {
   </svg>`;
 }
 
-/* ---------- benchmarks: ticker + table ---------- */
-function changeHTML(b) {
-  if (b.change == null || !Number.isFinite(Number(b.change))) return "";
-  const cls = b.change >= 0 ? "up" : "down";
-  const arrow = b.change >= 0 ? "▲" : "▼";
-  return `<span class="${cls}">${arrow} ${Math.abs(b.change)}%</span>`;
-}
+/* ---------- reference prices: ticker + table ---------- */
+const benchPrice = (b) =>
+  b.range ? String(b.range) : b.price.toLocaleString(undefined, { maximumFractionDigits: 2 });
 
 function renderTicker() {
-  const items = BENCHMARKS.map((b) => {
-    const live = b.live ? ` <em class="live-dot" title="${esc(t("market.live"))}">●</em>` : "";
-    return `<span>${esc(b.name)}: <strong>${b.price.toLocaleString()} ${esc(b.unit)}</strong> ${changeHTML(b)}${live}</span>`;
-  }).join("");
+  const items = BENCHMARKS.map((b) =>
+    `<span>${esc(b.name)}: <strong>${esc(benchPrice(b))} ${esc(b.unit)}</strong>${b.asOf ? ` <em class="as-of">${esc(b.asOf)}</em>` : ""}</span>`
+  ).join("");
   $("#tickerTrack").innerHTML = items + items; // duplicated for seamless loop
 }
 
 function renderMarket() {
-  $("#marketTable tbody").innerHTML = BENCHMARKS.map((b) => {
-    const live = b.live ? ` <span class="live-badge">${esc(t("market.live"))}</span>` : "";
-    return `<tr><td>${esc(b.name)}${live}</td><td><strong>${b.price.toLocaleString()}</strong></td><td>${esc(b.unit)}</td><td>${changeHTML(b) || "—"}</td></tr>`;
-  }).join("");
+  $("#marketTable tbody").innerHTML = BENCHMARKS.map((b) =>
+    `<tr>
+      <td>${esc(b.name)}${b.source ? `<span class="bench-source">${esc(b.source)}</span>` : ""}</td>
+      <td><strong>${esc(benchPrice(b))}</strong></td>
+      <td>${esc(b.unit)}</td>
+      <td>${esc(b.asOf) || "—"}</td>
+    </tr>`
+  ).join("");
 }
 
-/* ---------- live prices: timeout, HTTP check, 15-minute cache, static fallback ---------- */
+/* ---------- live exchange rate: timeout, HTTP check, 15-minute cache, static fallback ---------- */
 const LIVE_TTL_MS = 15 * 60 * 1000;
-const LIVE_METALS = [
-  { symbol: "XAU", match: "Gold", convert: (v) => v },
-  // feed quotes copper per pound → convert to per tonne
-  { symbol: "HG", match: "Copper", liveName: "Copper (COMEX)", convert: (v) => (v < 100 ? v * 2204.62 : v) },
-];
 
 async function fetchJson(url, ms = 6000) {
   const ctrl = new AbortController();
@@ -235,54 +238,35 @@ async function fetchJson(url, ms = 6000) {
   }
 }
 
+// the fallback rate is a sanity anchor: a live value far from it is treated as a bad response
+const egpPlausible = (v) => typeof v === "number" && v > USD_TO_EGP * 0.5 && v < USD_TO_EGP * 2;
+
 function applyLive(d) {
-  if (!d) return;
-  if (typeof d.egp === "number" && d.egp > 10 && d.egp < 500) usdToEgp = d.egp;
-  for (const u of LIVE_METALS) {
-    const raw = d.metals && d.metals[u.symbol];
-    if (typeof raw !== "number" || !Number.isFinite(raw)) continue;
-    const b = BENCHMARKS.find((x) => x.name.startsWith(u.match));
-    if (!b) continue;
-    const v = Math.round(u.convert(raw));
-    // sanity window: ignore values wildly off the static reference
-    if (v > b.base * 0.5 && v < b.base * 2) {
-      b.price = v;
-      b.change = null; // this feed has no 24h figure — the row shows LIVE instead
-      b.live = true;
-      if (u.liveName) b.name = u.liveName;
-    }
-  }
-  renderTicker();
-  renderMarket();
+  if (!d || !egpPlausible(d.egp)) return;
+  usdToEgp = d.egp;
   if (currency === "EGP") {
     renderProducts();
     renderCart();
     if (modalProduct) renderModal(modalProduct);
+    checkAlerts();
   }
-  checkAlerts();
 }
 
 async function loadLive() {
-  const cached = store.json("ov-live", null);
+  const cached = store.json("ov-fx", null);
   if (cached && typeof cached.ts === "number" && Date.now() - cached.ts < LIVE_TTL_MS) {
     applyLive(cached);
     return;
   }
-  const [fx, ...metals] = await Promise.allSettled([
-    fetchJson("https://open.er-api.com/v6/latest/USD"),
-    ...LIVE_METALS.map((u) => fetchJson("https://api.gold-api.com/price/" + u.symbol)),
-  ]);
-  const d = { ts: Date.now(), egp: null, metals: {} };
-  if (fx.status === "fulfilled" && fx.value && fx.value.rates) d.egp = Number(fx.value.rates.EGP) || null;
-  metals.forEach((m, i) => {
-    if (m.status === "fulfilled" && m.value && typeof m.value.price === "number") {
-      d.metals[LIVE_METALS[i].symbol] = m.value.price;
+  try {
+    const fx = await fetchJson("https://open.er-api.com/v6/latest/USD");
+    const egp = fx && fx.rates ? Number(fx.rates.EGP) : NaN;
+    if (egpPlausible(egp)) {
+      const d = { ts: Date.now(), egp };
+      store.setJson("ov-fx", d);
+      applyLive(d);
     }
-  });
-  if (d.egp || Object.keys(d.metals).length) {
-    store.setJson("ov-live", d);
-    applyLive(d);
-  }
+  } catch (_) { /* keep the fallback rate from data.js */ }
 }
 
 /* ---------- products ---------- */

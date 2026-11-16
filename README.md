@@ -4,8 +4,8 @@ A static marketplace website for AI-sorted mining materials — the selling coun
 [OreVision showcase site](https://mohammedmadany.github.io/OreVision-Web-Showcase/).
 
 ## Features
-- **Materials catalog** — 12 Egyptian mining products with grade, origin, uses, MOQ and live stock levels
-- **Global pricing** — scrolling benchmark ticker + market table (LME copper, gold, iron ore, phosphate…)
+- **Materials catalog** — 13 Egyptian mining products, including natural red iron oxide powder, with grade, origin, uses, MOQ and stock levels
+- **Market reference prices** — scrolling ticker + table for iron ore, iron oxide, phosphate, ilmenite and silica sand, each showing its date and source
 - **Price trend sparklines** on every product card
 - **Quote cart** — add quantities, see an indicative total, and auto-fill the inquiry form (saved in the browser, survives reload)
 - **Currency toggle** — USD ⇄ EGP
@@ -30,7 +30,7 @@ node tests/run-tests.js
 ## How the site protects itself
 - A typo in `data.js` (text where a number should be, a missing trend, a duplicate id) is repaired or skipped at startup instead of breaking the page.
 - Visitors' saved carts are re-validated on every visit: removed or sold-out products are dropped, quantities are kept between the minimum order and the stock on hand.
-- Live prices time out after 6 seconds, are cached for 15 minutes, and fall back to the static numbers.
+- The live USD→EGP rate times out after 6 seconds, is cached for 15 minutes, ignores implausible values, and falls back to `USD_TO_EGP` in `data.js`.
 
 ## Product photos
 - Every product card and detail view has a real mineral photograph, plus an open-pit mine behind the hero.
@@ -40,7 +40,7 @@ node tests/run-tests.js
 
 ## New in this version
 - **Arabic / English toggle** (عربي button) with full right-to-left layout — the whole site, catalog included, flips languages
-- **Live prices** — the USD→EGP rate and the gold/copper benchmarks update from free public APIs on page load (static values stay if the APIs are unreachable), marked with a green LIVE badge
+- **Live exchange rate** — USD→EGP updates from a free public API on page load. The reference prices are updated by hand in `data.js` (`BENCHMARKS`): there is no free live feed for iron ore, iron oxide or the other industrial minerals, so each entry carries an `asOf` date and a `source`.
 - **Order calculator** in every product detail: quantity + delivery term (EXW/FOB/CIF) + destination region → estimated total with freight
 - **Volume discounts** — tiers in `data.js` (`SITE.DISCOUNT_TIERS`): ≥5× MOQ → −3%, ≥20× MOQ → −7%, applied automatically in the cart and calculator
 - **90-day price charts** in product details
