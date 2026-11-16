@@ -31,6 +31,12 @@ const fill = (key, vars) => t(key).replace(/\{(\w+)\}/g, (_, k) => vars[k] ?? ""
 const esc = (s) => String(s ?? "").replace(/[&<>"']/g, (c) =>
   ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]));
 const byId = (id) => PRODUCTS.find((p) => p.id === id);
+const isIsoDate = (s) => /^\d{4}-\d{2}-\d{2}$/.test(s) && !Number.isNaN(Date.parse(s + "T00:00:00Z"));
+function fmtDate(iso) {
+  if (!isIsoDate(String(iso))) return String(iso || "");
+  return new Date(iso + "T00:00:00Z").toLocaleDateString(lang === "ar" ? "ar-EG" : "en-GB",
+    { day: "numeric", month: "short", year: "numeric", timeZone: "UTC" });
+}
 
 /* ---------- data validation: a typo in data.js degrades gracefully instead of breaking the site ---------- */
 function normalizeData() {
@@ -59,8 +65,16 @@ function normalizeData() {
     p.origin = p.origin || "";
     p.uses = p.uses || "";
     p.icon = p.icon || "◆";
-    const trend = (Array.isArray(p.trend) ? p.trend : []).map(Number).filter((v) => Number.isFinite(v) && v > 0);
-    p.trend = trend.length >= 2 ? trend : [p.basePrice || 1, p.basePrice || 1];
+    // real recorded prices only: valid dates, positive prices, oldest first, one entry per date
+    const hist = (Array.isArray(p.history) ? p.history : [])
+      .map((h) => ({ date: String((h && h.date) || ""), price: Number(h && h.price) }))
+      .filter((h) => isIsoDate(h.date) && Number.isFinite(h.price) && h.price > 0)
+      .sort((a, b) => a.date.localeCompare(b.date));
+    p.history = hist.filter((h, j) => j === hist.length - 1 || hist[j + 1].date !== h.date);
+    if (!p.history.length && p.basePrice > 0 && isIsoDate(LAST_UPDATED)) {
+      p.history = [{ date: LAST_UPDATED, price: p.basePrice }];
+    }
+    delete p.trend; // older data.js files carried an invented trend line
   }
   for (let i = BENCHMARKS.length - 1; i >= 0; i--) {
     const b = BENCHMARKS[i];
@@ -122,11 +136,14 @@ function discountPct(p, qty) {
 // largest discount a buyer can actually reach with the stock on hand
 const maxDiscountFor = (p) => (isOut(p) ? 0 : discountPct(p, p.stock));
 
-function sparkline(trend) {
-  const min = Math.min(...trend), max = Math.max(...trend);
+// drawn only once a product has at least two real recorded prices
+function sparkline(history) {
+  if (!history || history.length < 2) return "";
+  const prices = history.map((h) => h.price);
+  const min = Math.min(...prices), max = Math.max(...prices);
   const range = max - min || 1;
-  const pts = trend
-    .map((v, i) => `${((i / (trend.length - 1)) * 100).toFixed(1)},${(30 - ((v - min) / range) * 26 + 2).toFixed(1)}`)
+  const pts = prices
+    .map((v, i) => `${((i / (prices.length - 1)) * 100).toFixed(1)},${(30 - ((v - min) / range) * 26 + 2).toFixed(1)}`)
     .join(" ");
   return `<svg class="spark" viewBox="0 0 100 34" preserveAspectRatio="none" aria-hidden="true"><polyline points="${pts}"/></svg>`;
 }
@@ -317,7 +334,7 @@ function cardHTML(p) {
     </div>
     <h3><a href="#" class="detail-link" data-detail="${id}">${esc(pname(p))}</a></h3>
     <p class="meta">${esc(p.grade)}<br>${esc(porigin(p))} · ${esc(puses(p))}</p>
-    ${sparkline(p.trend)}
+    ${sparkline(p.history)}
     <div class="price-row">
       <span class="price">${fmtPrice(p.basePrice)}</span>
       <span class="per">/ ${esc(p.unit)} · ${t("card.moq")} ${p.moq} ${esc(p.unit)} · ${p.stock.toLocaleString()} ${esc(p.unit)} ${t("card.available")}</span>
@@ -411,41 +428,43 @@ function closeDrawer() {
   hideOverlay($("#cartDrawer"), $("#drawerBackdrop"));
 }
 
-/* ---------- 90-day price series + chart ---------- */
-function series90(p) {
-  const rnd = seededRand(p.id + "-series");
-  const anchors = p.trend; // normalizeData guarantees length >= 2
-  const out = [];
-  for (let d = 0; d < 90; d++) {
-    const pos = (d / 89) * (anchors.length - 1);
-    const i = Math.min(Math.floor(pos), anchors.length - 2);
-    const frac = pos - i;
-    const base = anchors[i] + (anchors[i + 1] - anchors[i]) * frac;
-    out.push(base * (1 + (rnd() - 0.5) * 0.02));
-  }
-  return out;
-}
-
+/* ---------- price history chart: real recorded prices only, spaced by date ---------- */
 function chartSVG(p) {
-  const data = series90(p);
-  const min = Math.min(...data), max = Math.max(...data);
-  const range = max - min || 1;
-  const W = 460, H = 140, PAD = 34;
-  const x = (i) => PAD + (i / (data.length - 1)) * (W - PAD - 10);
-  const y = (v) => H - 20 - ((v - min) / range) * (H - 40);
-  const pts = data.map((v, i) => `${x(i).toFixed(1)},${y(v).toFixed(1)}`).join(" ");
-  const grid = [min, (min + max) / 2, max]
-    .map((v) => `<line x1="${PAD}" x2="${W - 10}" y1="${y(v).toFixed(1)}" y2="${y(v).toFixed(1)}"/>
-      <text x="${PAD - 4}" y="${(y(v) + 4).toFixed(1)}" text-anchor="end">${Math.round(v)}</text>`)
+  const h = p.history || [];
+  if (h.length < 2) {
+    const since = h.length ? h[0].date : LAST_UPDATED;
+    return `
+  <h4>${t("modal.chart")}</h4>
+  <p class="chart-empty">${esc(fill("chart.empty", { date: fmtDate(since) }))}</p>`;
+  }
+  const times = h.map((e) => Date.parse(e.date + "T00:00:00Z"));
+  const t0 = times[0], span = times[times.length - 1] - t0 || 1;
+  const prices = h.map((e) => e.price);
+  const min = Math.min(...prices), max = Math.max(...prices);
+  const pad = (max - min) * 0.15 || max * 0.05 || 1; // flat history still gets visible headroom
+  const lo = min - pad, hi = max + pad;
+  const W = 460, H = 150, PADL = 44, PADR = 14;
+  const x = (i) => PADL + ((times[i] - t0) / span) * (W - PADL - PADR);
+  const y = (v) => H - 24 - ((v - lo) / (hi - lo)) * (H - 44);
+  const pts = prices.map((v, i) => `${x(i).toFixed(1)},${y(v).toFixed(1)}`).join(" ");
+  const dots = prices.map((v, i) =>
+    `<circle class="chart-dot" cx="${x(i).toFixed(1)}" cy="${y(v).toFixed(1)}" r="3.5"><title>${esc(fmtDate(h[i].date))}: ${esc(fmtPrice(v))}</title></circle>`
+  ).join("");
+  const grid = [min, max]
+    .filter((v, i, a) => a.indexOf(v) === i)
+    .map((v) => `<line x1="${PADL}" x2="${W - PADR}" y1="${y(v).toFixed(1)}" y2="${y(v).toFixed(1)}"/>
+      <text x="${PADL - 6}" y="${(y(v) + 4).toFixed(1)}" text-anchor="end">${Math.round(v)}</text>`)
     .join("");
   return `
   <h4>${t("modal.chart")}</h4>
   <svg class="chart" viewBox="0 0 ${W} ${H}" role="img" aria-label="${esc(t("modal.chart"))}">
     <g class="chart-grid">${grid}</g>
     <polyline class="chart-line" points="${pts}"/>
-    <text class="chart-x" x="${PAD}" y="${H - 4}">-90d</text>
-    <text class="chart-x" x="${W - 10}" y="${H - 4}" text-anchor="end">${esc(LAST_UPDATED)}</text>
-  </svg>`;
+    ${dots}
+    <text class="chart-x" x="${PADL}" y="${H - 6}">${esc(fmtDate(h[0].date))}</text>
+    <text class="chart-x" x="${W - PADR}" y="${H - 6}" text-anchor="end">${esc(fmtDate(h[h.length - 1].date))}</text>
+  </svg>
+  <p class="chart-note">${esc(fill("chart.note", { n: h.length }))}</p>`;
 }
 
 /* ---------- order calculator ---------- */
@@ -510,7 +529,7 @@ function renderModal(p) {
       <div><span>${t("modal.uses")}</span><strong>${esc(puses(p))}</strong></div>
       <div><span>${t("modal.price")}</span><strong>${fmtPrice(p.basePrice)} / ${esc(p.unit)}</strong></div>
       <div><span>${t("modal.moq")}</span><strong>${p.moq} ${esc(p.unit)}</strong></div>
-      <div><span>${t("modal.stock")}</span><strong>${out ? t("badge.out") : p.stock.toLocaleString() + " " + esc(p.unit)}</strong></div>
+      <div><span>${t("modal.stock")}</span><strong>${out ? t("badge.out") : p.stock.toLocaleString() + " " + esc(p.unit)}</strong><em class="as-of-note">${esc(fill("modal.asOf", { date: fmtDate(LAST_UPDATED) }))}</em></div>
       <div><span>${t("modal.validity")}</span><strong>${esc(SITE.QUOTE_VALID_DAYS)} ${t("modal.days")}</strong></div>
     </div>
     ${chartSVG(p)}
@@ -761,6 +780,7 @@ function applyI18n() {
     el.placeholder = t(el.dataset.i18nPh);
   });
   $("#langToggle").textContent = lang === "ar" ? "EN" : "عربي";
+  $("#lastUpdated").textContent = fmtDate(LAST_UPDATED);
   const sel = $("#categoryFilter");
   [...sel.options].forEach((o) => { if (o.value) o.textContent = pcat(o.value); });
 }
@@ -828,7 +848,6 @@ function init() {
   cart = sanitizeCart(store.json("ov-cart", []));
   alerts = sanitizeAlerts(store.json("ov-alerts", []));
 
-  $("#lastUpdated").textContent = LAST_UPDATED;
 
   // categories
   [...new Set(PRODUCTS.map((p) => p.category))].forEach((c) => {
