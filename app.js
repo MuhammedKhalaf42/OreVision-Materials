@@ -23,7 +23,8 @@ function fmtPrice(usd) {
   if (currency === "EGP") {
     return "E£" + Math.round(usd * usdToEgp).toLocaleString();
   }
-  return "$" + (usd % 1 ? usd.toFixed(2) : usd).toLocaleString();
+  const v = Math.round(usd * 100) / 100;
+  return "$" + v.toLocaleString(undefined, { maximumFractionDigits: 2 });
 }
 
 function stockBadge(p) {
@@ -169,6 +170,7 @@ function renderProducts() {
   $("#productGrid").innerHTML = list.length
     ? list.map(cardHTML).join("")
     : `<p class="cart-empty">${t("catalog.noMatch")}</p>`;
+  observeReveals();
 }
 
 function cardHTML(p) {
@@ -532,6 +534,19 @@ function setupExitPopup() {
   });
 }
 
+/* ---------- scroll reveal ---------- */
+const revealObserver = new IntersectionObserver((entries) => {
+  entries.forEach((e) => {
+    if (e.isIntersecting) { e.target.classList.add("in"); revealObserver.unobserve(e.target); }
+  });
+}, { threshold: 0.12 });
+
+function observeReveals() {
+  document.querySelectorAll(".card, .feature, .section-head, .docs-box").forEach((el) => {
+    if (!el.classList.contains("in")) { el.classList.add("reveal"); revealObserver.observe(el); }
+  });
+}
+
 /* ---------- init ---------- */
 function init() {
   $("#lastUpdated").textContent = LAST_UPDATED;
@@ -678,6 +693,7 @@ function init() {
   renderProducts();
   renderCart();
   checkAlerts();
+  observeReveals();
   fetchLive();
 }
 
