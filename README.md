@@ -17,6 +17,12 @@ Open **`data.js`** and fill in the `SITE` block at the top:
 - `CONTACT_EMAIL: "you@example.com"` → "Send Inquiry" opens the buyer's email app pre-addressed to you
 - `WHATSAPP_NUMBER: "2010XXXXXXXX"` (international format, digits only) → shows a floating WhatsApp chat button
 
+## Product photos
+- Every product card and detail view has a real mineral photograph, plus an open-pit mine behind the hero.
+- Photos live in `images/` named by product id (e.g. `images/quartz-hp.jpg`). **To use your own photo, just replace the file with the same name.** If a file is missing, the card falls back to generated artwork automatically.
+- Current photos are from Wikimedia Commons under free licenses (CC BY / CC BY-SA / public domain). These licenses require credit, which is provided on `credits.html` (linked in the footer) from `images/credits.json`. If you swap in your own photos, remove the matching entry from `credits.json`.
+- The photos illustrate the mineral type — they are not photos of your actual stock. Replacing them with real yard/lot photos will build more buyer trust.
+
 ## New in this version
 - **Arabic / English toggle** (عربي button) with full right-to-left layout — the whole site, catalog included, flips languages
 - **Live prices** — the USD→EGP rate and the gold/copper benchmarks update from free public APIs on page load (static values stay if the APIs are unreachable), marked with a green LIVE badge

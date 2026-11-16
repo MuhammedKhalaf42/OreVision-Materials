@@ -88,6 +88,8 @@ img { max-width: 100%; }
   padding: 90px 24px 70px;
   background:
     radial-gradient(900px 400px at 80% -10%, color-mix(in srgb, var(--accent) 18%, transparent), transparent),
+    linear-gradient(color-mix(in srgb, var(--bg) 78%, transparent), color-mix(in srgb, var(--bg) 96%, transparent)),
+    url("images/hero.jpg") center / cover no-repeat,
     var(--bg);
   text-align: center;
 }
@@ -231,9 +233,20 @@ body.ar { font-family: "Cairo", "Inter", system-ui, sans-serif; }
 @keyframes tick-rtl { from { transform: translateX(0); } to { transform: translateX(50%); } }
 [dir="rtl"] .modal-body ul { padding-left: 0; padding-right: 20px; }
 
-/* ---- Card art ---- */
-.card-art { width: calc(100% + 40px); margin: -20px -20px 0; height: 86px; border-radius: var(--radius) var(--radius) 0 0; display: block; }
-[dir="rtl"] .card-art { margin: -20px -20px 0; }
+/* ---- Card media: photo over procedural art fallback ---- */
+.card-media {
+  position: relative; margin: -20px -20px 0; height: 150px; overflow: hidden;
+  border-radius: var(--radius) var(--radius) 0 0;
+}
+.card-art { position: absolute; inset: 0; width: 100%; height: 100%; display: block; }
+.card-photo {
+  position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover;
+  transition: transform .4s ease;
+}
+.card:hover .card-photo { transform: scale(1.05); }
+.modal-photo {
+  width: 100%; height: 200px; object-fit: cover; border-radius: 10px; margin-bottom: 16px; display: block;
+}
 .badge.tier { background: color-mix(in srgb, var(--accent) 14%, transparent); color: var(--accent); cursor: help; }
 
 /* ---- Live price markers ---- */

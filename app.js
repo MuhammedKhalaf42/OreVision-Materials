@@ -85,13 +85,19 @@ function artSVG(p) {
   </svg>`;
 }
 
+/* ---------- benchmark change marker (empty for live rows) ---------- */
+function changeHTML(b) {
+  if (b.change == null) return "";
+  const cls = b.change >= 0 ? "up" : "down";
+  const arrow = b.change >= 0 ? "▲" : "▼";
+  return `<span class="${cls}">${arrow} ${Math.abs(b.change)}%</span>`;
+}
+
 /* ---------- ticker ---------- */
 function renderTicker() {
   const items = BENCHMARKS.map((b) => {
-    const cls = b.change >= 0 ? "up" : "down";
-    const arrow = b.change >= 0 ? "▲" : "▼";
     const live = b.live ? ` <em class="live-dot" title="${t("market.live")}">●</em>` : "";
-    return `<span>${b.name}: <strong>${b.price.toLocaleString()} ${b.unit}</strong> <span class="${cls}">${arrow} ${Math.abs(b.change)}%</span>${live}</span>`;
+    return `<span>${b.name}: <strong>${b.price.toLocaleString()} ${b.unit}</strong> ${changeHTML(b)}${live}</span>`;
   }).join("");
   $("#tickerTrack").innerHTML = items + items; // duplicated for seamless loop
 }
@@ -99,10 +105,8 @@ function renderTicker() {
 /* ---------- market table ---------- */
 function renderMarket() {
   $("#marketTable tbody").innerHTML = BENCHMARKS.map((b) => {
-    const cls = b.change >= 0 ? "up" : "down";
-    const arrow = b.change >= 0 ? "▲" : "▼";
     const live = b.live ? ` <span class="live-badge">${t("market.live")}</span>` : "";
-    return `<tr><td>${b.name}${live}</td><td><strong>${b.price.toLocaleString()}</strong></td><td>${b.unit}</td><td class="${cls}">${arrow} ${Math.abs(b.change)}%</td></tr>`;
+    return `<tr><td>${b.name}${live}</td><td><strong>${b.price.toLocaleString()}</strong></td><td>${b.unit}</td><td>${changeHTML(b) || "—"}</td></tr>`;
   }).join("");
 }
 
@@ -121,7 +125,7 @@ async function fetchLive() {
   // Metals: gold (USD/oz) and copper
   const updates = [
     { symbol: "XAU", match: "Gold", convert: (v) => v },
-    { symbol: "HG", match: "Copper", convert: (v) => (v < 100 ? v * 2204.62 : v) }, // per-lb → per-t
+    { symbol: "HG", match: "Copper", liveName: "Copper (COMEX)", convert: (v) => (v < 100 ? v * 2204.62 : v) }, // per-lb → per-t
   ];
   let changed = false;
   for (const u of updates) {
@@ -133,9 +137,10 @@ async function fetchLive() {
         const v = Math.round(u.convert(j.price));
         // sanity window: ignore values wildly off the static benchmark
         if (v > b.price * 0.5 && v < b.price * 2) {
-          b.change = +((v / b.price - 1) * 100).toFixed(1);
           b.price = v;
+          b.change = null; // no real 24h figure from this feed — show LIVE instead
           b.live = true;
+          if (u.liveName) b.name = u.liveName;
           changed = true;
         }
       }
@@ -177,7 +182,10 @@ function cardHTML(p) {
   const out = p.stock <= 0;
   return `
   <article class="card">
-    ${artSVG(p)}
+    <div class="card-media">
+      ${artSVG(p)}
+      <img class="card-photo" src="images/${p.id}.jpg" alt="${pname(p)}" loading="lazy" onerror="this.remove()">
+    </div>
     <div class="card-top">
       ${stockBadge(p)}
       <span class="badge tier" title="${t("card.volume")} ${maxDiscount()}%">-${maxDiscount()}%</span>
@@ -341,6 +349,7 @@ function openModal(id) {
     .map((x) => `<li>${lang === "ar" ? AR_INCOTERMS[x] || x : x}</li>`)
     .join("");
   $("#modalBody").innerHTML = `
+    <img class="modal-photo" src="images/${p.id}.jpg" alt="${pname(p)}" onerror="this.remove()">
     <div class="spec-grid">
       <div><span>${t("modal.category")}</span><strong>${pcat(p.category)}</strong></div>
       <div><span>${t("modal.grade")}</span><strong>${p.grade}</strong></div>

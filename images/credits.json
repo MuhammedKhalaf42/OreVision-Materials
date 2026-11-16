@@ -1,0 +1,80 @@
+[
+  {
+    "id": "feldspar-k",
+    "source": "https://commons.wikimedia.org/wiki/File:OrthoclaseBresil.jpg",
+    "artist": "Didier Descouens",
+    "license": "CC BY-SA 4.0"
+  },
+  {
+    "id": "feldspar-na",
+    "source": "https://commons.wikimedia.org/wiki/File:Albite_-_Crete_(Kriti)_Island,_Greece.jpg",
+    "artist": "Rock Currier",
+    "license": "CC BY 3.0"
+  },
+  {
+    "id": "gypsum",
+    "source": "https://commons.wikimedia.org/wiki/File:Gypsum_v._Selenite_(4739680750).jpg",
+    "artist": "Ed Uthman from Houston, TX, USA",
+    "license": "CC BY 2.0"
+  },
+  {
+    "id": "hero",
+    "source": "https://commons.wikimedia.org/wiki/File:Chuquicamata-002.jpg",
+    "artist": "Reinhard Jahn",
+    "license": "CC BY-SA 2.0 de"
+  },
+  {
+    "id": "ilmenite",
+    "source": "https://commons.wikimedia.org/wiki/File:Ilmenite_(GeoDIL_number_-_1401).jpg",
+    "artist": "Darla Sondrol",
+    "license": "CC0"
+  },
+  {
+    "id": "iron-ore",
+    "source": "https://commons.wikimedia.org/wiki/File:Sedimentary_iron_ore_-_probably_hematite_and_limonite_(25507414713).jpg",
+    "artist": "Jan Helebrant",
+    "license": "CC BY-SA 2.0"
+  },
+  {
+    "id": "kaolin",
+    "source": "https://commons.wikimedia.org/wiki/File:Mus%C3%A9um_de_Nantes_-_178_-_Kaolinite_(Nantes,_France).jpg",
+    "artist": "Koreller",
+    "license": "CC BY-SA 4.0"
+  },
+  {
+    "id": "limestone",
+    "source": "https://commons.wikimedia.org/wiki/File:ElTorcal0408.jpg",
+    "artist": "Fernando Domínguez Cerejido",
+    "license": "CC BY-SA 4.0"
+  },
+  {
+    "id": "manganese",
+    "source": "https://commons.wikimedia.org/wiki/File:Mus%C3%A9um_de_Nantes_-_568_-_Pyrolusite_(Morvan,_France).jpg",
+    "artist": "Koreller",
+    "license": "CC BY-SA 4.0"
+  },
+  {
+    "id": "phosphate",
+    "source": "https://commons.wikimedia.org/wiki/File:Black_concretionary_phosphorite_(Morris_Member,_Phosphoria_Formation,_mid-Permian;_Waterloo_Mine,_Bear_Lake_County,_Idaho,_USA)_(34327234316).jpg",
+    "artist": "James St. John",
+    "license": "CC BY 2.0"
+  },
+  {
+    "id": "quartz-hp",
+    "source": "https://commons.wikimedia.org/wiki/File:Quartz_(Ellenville,_New_York_State,_USA)_18.jpg",
+    "artist": "James St. John",
+    "license": "CC BY 2.0"
+  },
+  {
+    "id": "silica-sand",
+    "source": "https://commons.wikimedia.org/wiki/File:Sand_from_Gobi_Desert.jpg",
+    "artist": "Siim Sepp",
+    "license": "CC BY-SA 3.0"
+  },
+  {
+    "id": "talc",
+    "source": "https://commons.wikimedia.org/wiki/File:Talc_block.jpg",
+    "artist": "Unknown",
+    "license": "Public domain"
+  }
+]

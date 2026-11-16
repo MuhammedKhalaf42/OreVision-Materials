@@ -98,6 +98,7 @@ const I18N = {
     "popup.close": "No thanks",
     "footer.rights": "© 2026 OreVision Materials · Sister site of",
     "footer.disclaimer": "All prices are indicative benchmarks, not binding offers.",
+    "footer.credits": "Photo credits",
   },
   ar: {
     "nav.products": "المنتجات",
@@ -194,6 +195,7 @@ const I18N = {
     "popup.close": "لا شكراً",
     "footer.rights": "© ٢٠٢٦ OreVision Materials · الموقع الشقيق لـ",
     "footer.disclaimer": "جميع الأسعار مؤشرات استرشادية وليست عروضاً ملزمة.",
+    "footer.credits": "حقوق الصور",
   },
 };
 
