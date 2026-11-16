@@ -76,7 +76,7 @@ Then open http://localhost:4173
 1. Create a new repository, e.g. `OreVision-Materials`
 2. Upload `index.html`, `styles.css`, `app.js`, `data.js`
 3. Repository **Settings → Pages → Deploy from branch → main / (root)**
-4. The site appears at `https://<username>.github.io/OreVision-Materials/`
+4. The site appears at `https://muhammedkhalaf42.github.io/OreVision-Materials/`
 
 ## Ideas for later
 - Wire the inquiry form to a free form service (Formspree / Web3Forms) so submissions reach your email
