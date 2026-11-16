@@ -1,0 +1,227 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>OreVision Materials</title>
+<meta name="description" content="Buy AI-sorted mining materials — feldspar, quartz, silica sand, phosphate and more — with transparent global pricing and live stock.">
+<meta property="og:title" content="OreVision Materials — AI-Sorted Mining Materials">
+<meta property="og:description" content="Feldspar, quartz, silica sand, phosphate and more from Egypt. Transparent global pricing, real stock levels, quotes in minutes.">
+<meta property="og:type" content="website">
+<meta property="og:locale" content="en_US">
+<meta name="twitter:card" content="summary">
+<meta name="theme-color" content="#0e1116">
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Ctext y='80' font-size='80'%3E%E2%9B%8F%3C/text%3E%3C/svg%3E">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Cairo:wght@400;600;700;800&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="styles.css">
+</head>
+<body>
+
+<!-- ======= Price ticker ======= -->
+<div class="ticker" aria-label="Global commodity benchmark prices">
+  <div class="ticker-track" id="tickerTrack"></div>
+</div>
+
+<!-- ======= Price alert banner ======= -->
+<div class="alert-banner" id="alertBanner" hidden></div>
+
+<!-- ======= Header ======= -->
+<header class="site-header">
+  <a class="brand" href="#top">
+    <span class="brand-mark">⛏</span>
+    <span>OreVision <strong>Materials</strong></span>
+  </a>
+  <nav class="main-nav" id="mainNav">
+    <a href="#products" data-i18n="nav.products">Products</a>
+    <a href="#market" data-i18n="nav.market">Global Prices</a>
+    <a href="#why" data-i18n="nav.why">Why Us</a>
+    <a href="#about" data-i18n="nav.about">About</a>
+    <a href="#contact" data-i18n="nav.contact">Contact</a>
+  </nav>
+  <div class="header-actions">
+    <button class="btn-ghost" id="langToggle" title="العربية / English">عربي</button>
+    <button class="btn-ghost" id="currencyToggle" title="Switch currency">USD</button>
+    <button class="btn-ghost" id="themeToggle" title="Toggle theme">◐</button>
+    <button class="btn-cart" id="cartBtn">
+      <span data-i18n="cart.btn">Quote Cart</span> <span class="cart-count" id="cartCount">0</span>
+    </button>
+  </div>
+</header>
+
+<!-- ======= Hero ======= -->
+<section class="hero" id="top">
+  <div class="hero-inner">
+    <p class="hero-kicker" data-i18n="hero.kicker">AI-SORTED · EXPORT READY · EGYPT &amp; MENA</p>
+    <h1><span data-i18n="hero.title.pre">Mining materials with </span><span class="accent" data-i18n="hero.title.accent">transparent global pricing</span></h1>
+    <p class="hero-sub" data-i18n="hero.sub">Every lot is sorted by OreVision's AI technology for verified purity.
+       Check live benchmark prices, see real stock, and request a quote in minutes.</p>
+    <div class="hero-cta">
+      <a class="btn-primary" href="#products" data-i18n="hero.browse">Browse Materials</a>
+      <a class="btn-outline" href="#market" data-i18n="hero.viewPrices">View Global Prices</a>
+    </div>
+    <div class="hero-stats">
+      <div><strong id="statProducts">0</strong><span data-i18n="stats.materials">Materials</span></div>
+      <div><strong id="statStock">0</strong><span data-i18n="stats.stock">Tonnes in stock</span></div>
+      <div><strong>98%</strong><span data-i18n="stats.purity">Sorted purity</span></div>
+      <div><strong>13+</strong><span data-i18n="stats.markets">Export markets</span></div>
+    </div>
+  </div>
+</section>
+
+<!-- ======= Products ======= -->
+<section class="section" id="products">
+  <div class="section-head">
+    <h2 data-i18n="catalog.title">Materials Catalog</h2>
+    <p><span data-i18n="catalog.sub">Prices are indicative FOB benchmarks per metric tonne. Last updated</span> <span id="lastUpdated"></span>.</p>
+  </div>
+
+  <div class="toolbar">
+    <input type="search" id="searchInput" data-i18n-ph="catalog.search" placeholder="Search materials, grades, uses…" aria-label="Search materials">
+    <select id="categoryFilter" aria-label="Filter by category">
+      <option value="" data-i18n="catalog.allCats">All categories</option>
+    </select>
+    <select id="sortSelect" aria-label="Sort products">
+      <option value="name" data-i18n="catalog.sortName">Sort: Name</option>
+      <option value="price-asc" data-i18n="catalog.sortPriceAsc">Price: Low → High</option>
+      <option value="price-desc" data-i18n="catalog.sortPriceDesc">Price: High → Low</option>
+      <option value="stock" data-i18n="catalog.sortStock">Stock: Most first</option>
+    </select>
+    <label class="check"><input type="checkbox" id="inStockOnly"> <span data-i18n="catalog.inStockOnly">In stock only</span></label>
+  </div>
+
+  <div class="product-grid" id="productGrid"></div>
+  <div class="catalog-actions">
+    <button class="btn-outline" id="downloadCsv" type="button" data-i18n="catalog.csv">⬇ Download Price List (CSV)</button>
+  </div>
+</section>
+
+<!-- ======= Global market prices ======= -->
+<section class="section section-alt" id="market">
+  <div class="section-head">
+    <h2 data-i18n="market.title">Global Benchmark Prices</h2>
+    <p data-i18n="market.sub">Reference levels from major exchanges and trade indices. Indicative only — contract prices are confirmed per quote.</p>
+  </div>
+  <div class="market-table-wrap">
+    <table class="market-table" id="marketTable">
+      <thead><tr>
+        <th data-i18n="market.benchmark">Benchmark</th>
+        <th data-i18n="market.price">Price</th>
+        <th data-i18n="market.unit">Unit</th>
+        <th data-i18n="market.change">24h</th>
+      </tr></thead>
+      <tbody></tbody>
+    </table>
+  </div>
+  <p class="disclaimer" data-i18n="market.disclaimer">Benchmark data is indicative and for orientation only. It is not investment advice and not a live exchange feed.</p>
+</section>
+
+<!-- ======= Why us ======= -->
+<section class="section" id="why">
+  <div class="section-head"><h2 data-i18n="why.title">Why Buy Through OreVision</h2></div>
+  <div class="feature-grid">
+    <div class="feature"><span class="f-icon">🔬</span><h3 data-i18n="why.f1t">AI-Verified Purity</h3><p data-i18n="why.f1p">Every lot passes our computer-vision sorting line with a digital purity certificate.</p></div>
+    <div class="feature"><span class="f-icon">📦</span><h3 data-i18n="why.f2t">Real Stock Levels</h3><p data-i18n="why.f2p">What you see is what is in the yard — stock figures update with every shipment.</p></div>
+    <div class="feature"><span class="f-icon">🌍</span><h3 data-i18n="why.f3t">Export Logistics</h3><p data-i18n="why.f3p">FOB, CIF or EXW terms from Egyptian ports with full documentation support.</p></div>
+    <div class="feature"><span class="f-icon">💱</span><h3 data-i18n="why.f4t">Transparent Pricing</h3><p data-i18n="why.f4p">Prices tied to global benchmarks — no hidden margins, quotes valid 14 days.</p></div>
+  </div>
+</section>
+
+<!-- ======= About & certifications ======= -->
+<section class="section section-alt" id="about">
+  <div class="section-head">
+    <h2 data-i18n="about.title">About &amp; Certifications</h2>
+  </div>
+  <p class="about-text" data-i18n="about.p1">OreVision Materials is the trading arm of OreVision, the Egyptian pioneer of AI-powered ore sorting founded in 2025. Our computer-vision sorting line verifies the purity of every lot before it ships, so buyers get exactly the grade they ordered.</p>
+  <div class="feature-grid about-steps">
+    <div class="feature"><span class="f-icon">📷</span><h3 data-i18n="about.step1t">1 · Image Capture</h3><p data-i18n="about.step1p">Industrial cameras scan ores on the conveyor.</p></div>
+    <div class="feature"><span class="f-icon">🧠</span><h3 data-i18n="about.step2t">2 · AI Analysis</h3><p data-i18n="about.step2p">Deep learning identifies and grades valuable minerals.</p></div>
+    <div class="feature"><span class="f-icon">📜</span><h3 data-i18n="about.step3t">3 · Sorted &amp; Certified</h3><p data-i18n="about.step3p">Each export lot ships with a digital purity certificate.</p></div>
+  </div>
+  <div class="docs-box">
+    <h3 data-i18n="about.docsTitle">Export documentation provided</h3>
+    <p data-i18n="about.docs">Commercial invoice · Packing list · Certificate of origin · AI-sorting purity certificate · SGS inspection on request · Bill of lading</p>
+  </div>
+</section>
+
+<!-- ======= Contact / RFQ ======= -->
+<section class="section" id="contact">
+  <div class="section-head">
+    <h2 data-i18n="contact.title">Request a Quote</h2>
+    <p data-i18n="contact.sub">Add materials to your quote cart or send us a direct inquiry.</p>
+  </div>
+  <form class="contact-form" id="contactForm">
+    <div class="form-row">
+      <input required name="name" data-i18n-ph="form.name" placeholder="Full name*">
+      <input required type="email" name="email" data-i18n-ph="form.email" placeholder="Email*">
+    </div>
+    <div class="form-row">
+      <input name="company" data-i18n-ph="form.company" placeholder="Company">
+      <input name="country" data-i18n-ph="form.country" placeholder="Country/Region*" required>
+    </div>
+    <textarea name="message" rows="4" data-i18n-ph="form.message" placeholder="Materials, quantities, destination port…"></textarea>
+    <button class="btn-primary" type="submit" data-i18n="form.send">Send Inquiry</button>
+    <p class="form-note" id="formNote" data-i18n="form.note" hidden>✓ Thank you — we will reply within one business day.</p>
+  </form>
+</section>
+
+<footer class="site-footer">
+  <p><span data-i18n="footer.rights">© 2026 OreVision Materials · Sister site of</span> <a href="https://mohammedmadany.github.io/OreVision-Web-Showcase/" target="_blank" rel="noopener">OreVision</a></p>
+  <p class="disclaimer" data-i18n="footer.disclaimer">All prices are indicative benchmarks, not binding offers.</p>
+</footer>
+
+<!-- ======= Quote cart drawer ======= -->
+<div class="drawer-backdrop" id="drawerBackdrop" hidden></div>
+<aside class="drawer" id="cartDrawer" aria-label="Quote cart" hidden>
+  <div class="drawer-head">
+    <h3 data-i18n="drawer.title">Quote Cart</h3>
+    <button class="btn-ghost" id="closeDrawer">✕</button>
+  </div>
+  <div class="drawer-body" id="cartItems"></div>
+  <div class="drawer-foot">
+    <div class="cart-total"><span data-i18n="drawer.total">Indicative total</span><strong id="cartTotal">$0</strong></div>
+    <button class="btn-primary" id="requestQuote" data-i18n="drawer.request">Request Formal Quote</button>
+    <p class="form-note" id="quoteNote" data-i18n="drawer.note" hidden>✓ Quote request prepared — submit your contact details below.</p>
+  </div>
+</aside>
+
+<!-- ======= Product detail modal ======= -->
+<div class="modal-backdrop" id="modalBackdrop" hidden></div>
+<div class="modal" id="productModal" role="dialog" aria-modal="true" hidden>
+  <div class="modal-head">
+    <h3 id="modalTitle"></h3>
+    <button class="btn-ghost" id="closeModal">✕</button>
+  </div>
+  <div class="modal-body" id="modalBody"></div>
+  <div class="modal-foot">
+    <button class="btn-outline" id="printDatasheet" type="button" data-i18n="modal.print">🖨 Print Datasheet</button>
+    <button class="btn-primary" id="modalAdd" type="button" data-i18n="modal.add">Add to Quote</button>
+  </div>
+</div>
+
+<!-- ======= Exit popup ======= -->
+<div class="modal-backdrop" id="popupBackdrop" hidden></div>
+<div class="modal exit-popup" id="exitPopup" role="dialog" aria-modal="true" hidden>
+  <div class="modal-body">
+    <h3 data-i18n="popup.title">Before you go…</h3>
+    <p data-i18n="popup.text">Download our full price list, or leave your email and we'll send you price updates.</p>
+    <button class="btn-primary" id="popupCsv" type="button" data-i18n="popup.csv">⬇ Download Price List</button>
+    <div class="popup-row">
+      <input type="email" id="popupEmail" data-i18n-ph="popup.emailPh" placeholder="your@email.com">
+      <button class="btn-outline" id="popupSubscribe" type="button" data-i18n="popup.subscribe">Send me updates</button>
+    </div>
+    <button class="btn-ghost popup-close" id="popupClose" type="button" data-i18n="popup.close">No thanks</button>
+  </div>
+</div>
+
+<!-- ======= Floating buttons ======= -->
+<a class="whatsapp-fab" id="whatsappFab" target="_blank" rel="noopener" hidden aria-label="Chat on WhatsApp">
+  <svg viewBox="0 0 32 32" width="26" height="26" fill="currentColor" aria-hidden="true"><path d="M16 3C9.4 3 4 8.4 4 15c0 2.1.6 4.1 1.6 5.9L4 29l8.3-1.6c1.7.9 3.6 1.4 5.7 1.4 6.6 0 12-5.4 12-12S22.6 3 16 3zm0 21.8c-1.8 0-3.5-.5-5-1.3l-.4-.2-4.9 1 1-4.8-.2-.4c-1-1.6-1.5-3.4-1.5-5.1 0-5.4 4.4-9.8 9.8-9.8s9.8 4.4 9.8 9.8-4.3 9.8-9.6 9.8zm5.4-7.3c-.3-.1-1.8-.9-2-1-.3-.1-.5-.1-.7.1-.2.3-.8 1-1 1.2-.2.2-.4.2-.7.1-.3-.1-1.2-.5-2.4-1.5-.9-.8-1.5-1.8-1.6-2.1-.2-.3 0-.5.1-.6l.5-.5c.1-.2.2-.3.3-.5.1-.2 0-.4 0-.5l-.9-2.2c-.2-.6-.5-.5-.7-.5h-.6c-.2 0-.5.1-.8.4-.3.3-1 1-1 2.5s1.1 2.9 1.2 3.1c.1.2 2.1 3.2 5.1 4.5.7.3 1.3.5 1.7.6.7.2 1.4.2 1.9.1.6-.1 1.8-.7 2-1.4.2-.7.2-1.3.2-1.4-.1-.2-.3-.3-.6-.4z"/></svg>
+</a>
+<button class="back-top" id="backTop" hidden aria-label="Back to top">↑</button>
+
+<script src="data.js"></script>
+<script src="i18n.js"></script>
+<script src="app.js"></script>
+</body>
+</html>
