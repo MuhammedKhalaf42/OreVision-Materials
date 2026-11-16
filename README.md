@@ -13,9 +13,24 @@ A static marketplace website for AI-sorted mining materials — the selling coun
 - Search, category filter, sorting, in-stock filter
 
 ## Activate contact features (2-minute setup)
-Open **`data.js`** and fill in the `SITE` block at the top:
-- `CONTACT_EMAIL: "you@example.com"` → "Send Inquiry" opens the buyer's email app pre-addressed to you
-- `WHATSAPP_NUMBER: "2010XXXXXXXX"` (international format, digits only) → shows a floating WhatsApp chat button
+Easiest: open **`admin.html`**, fill in the *Contact settings* boxes, download the new `data.js`.
+Or edit the `SITE` block at the top of `data.js` by hand:
+- `FORM_ENDPOINT: "https://formspree.io/f/…"` → **best option.** Create a free form at formspree.io, paste its URL here, and inquiries arrive in your inbox without the buyer leaving the site.
+- `CONTACT_EMAIL: "you@example.com"` → fallback: "Send Inquiry" opens the buyer's email app pre-addressed to you
+- `WHATSAPP_NUMBER: "2010XXXXXXXX"` (international format) → shows a floating WhatsApp chat button
+
+Until one of the first two is set, the form tells visitors honestly that nothing was sent.
+
+## Tests
+```bash
+node tests/run-tests.js
+```
+22 checks covering data integrity (every product has a photo, credits and Arabic translation; English and Arabic keys match), quantity and discount rules, and recovery from corrupt saved data. Run it after editing `data.js` or `i18n.js`.
+
+## How the site protects itself
+- A typo in `data.js` (text where a number should be, a missing trend, a duplicate id) is repaired or skipped at startup instead of breaking the page.
+- Visitors' saved carts are re-validated on every visit: removed or sold-out products are dropped, quantities are kept between the minimum order and the stock on hand.
+- Live prices time out after 6 seconds, are cached for 15 minutes, and fall back to the static numbers.
 
 ## Product photos
 - Every product card and detail view has a real mineral photograph, plus an open-pit mine behind the hero.

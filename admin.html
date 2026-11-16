@@ -6,96 +6,184 @@
 <title>OreVision Admin</title>
 <meta name="robots" content="noindex">
 <style>
-  :root { --bg:#0e1116; --card:#1a2029; --border:#2a3240; --text:#e8ecf1; --muted:#9aa5b1; --accent:#f5a623; }
+  :root { --bg:#0e1116; --card:#1a2029; --border:#2a3240; --text:#e8ecf1; --muted:#9aa5b1; --accent:#f5a623; --red:#e5534b; --green:#35c06f; }
   * { box-sizing: border-box; }
   body { font-family: system-ui, sans-serif; background: var(--bg); color: var(--text); margin: 0; padding: 30px 20px; }
   .wrap { max-width: 1000px; margin: 0 auto; }
   h1 { color: var(--accent); }
+  h2 { font-size: 1.1rem; margin-top: 32px; }
   p.note { color: var(--muted); font-size: .9rem; }
-  table { width: 100%; border-collapse: collapse; background: var(--card); border-radius: 10px; overflow: hidden; margin: 20px 0; }
+  .table-wrap { overflow-x: auto; }
+  table { width: 100%; border-collapse: collapse; background: var(--card); border-radius: 10px; overflow: hidden; margin: 14px 0; }
   th, td { padding: 10px 12px; border-bottom: 1px solid var(--border); text-align: left; font-size: .9rem; }
   th { background: #11151c; color: var(--muted); text-transform: uppercase; font-size: .72rem; letter-spacing: .05em; }
   input { background: var(--bg); border: 1px solid var(--border); color: var(--text); padding: 7px 9px; border-radius: 7px; width: 110px; font: inherit; }
+  input.wide { width: 100%; }
+  input.bad { border-color: var(--red); }
   .btn { background: var(--accent); color: #1b1200; border: none; padding: 12px 24px; border-radius: 9px; font-weight: 700; font-size: 1rem; cursor: pointer; }
   .btn:hover { filter: brightness(1.1); }
-  .row-extra { display: flex; gap: 16px; flex-wrap: wrap; margin: 16px 0; }
-  .row-extra label { display: flex; flex-direction: column; gap: 4px; color: var(--muted); font-size: .82rem; }
+  .grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); gap: 14px; margin: 14px 0; }
+  .grid label { display: flex; flex-direction: column; gap: 4px; color: var(--muted); font-size: .82rem; }
   ol { color: var(--muted); font-size: .9rem; line-height: 1.7; }
   code { background: var(--card); padding: 2px 6px; border-radius: 5px; }
+  #status { font-size: .92rem; min-height: 1.4em; }
+  #status.ok { color: var(--green); }
+  #status.err { color: var(--red); }
 </style>
 </head>
 <body>
 <div class="wrap">
   <h1>⛏ OreVision Admin</h1>
-  <p class="note">Edit prices and stock below, then click the download button. Replace the old
+  <p class="note">Edit prices, stock and settings below, then click the download button. Replace the old
     <code>data.js</code> in your site folder (or GitHub repository) with the downloaded file — done.
     This page runs entirely on your computer; nothing is uploaded anywhere.</p>
 
-  <div class="row-extra">
-    <label>USD → EGP rate <input id="fxRate" type="number" step="0.1"></label>
+  <h2>Contact settings</h2>
+  <div class="grid">
+    <label>Form endpoint (e.g. Formspree URL) <input class="wide" id="formEndpoint" type="url" placeholder="https://formspree.io/f/…"></label>
+    <label>Contact email (fallback) <input class="wide" id="contactEmail" type="email" placeholder="sales@yourcompany.com"></label>
+    <label>WhatsApp number (international) <input class="wide" id="whatsapp" type="tel" placeholder="2010XXXXXXXX"></label>
+  </div>
+
+  <h2>Pricing settings</h2>
+  <div class="grid">
+    <label>USD → EGP rate (fallback when live rate is unavailable) <input id="fxRate" type="number" step="0.1" min="0.1"></label>
     <label>Last updated (shown on site) <input id="lastUpd" type="date"></label>
   </div>
 
-  <table id="tbl">
-    <thead><tr><th>Material</th><th>Price (USD/t)</th><th>Stock (t)</th><th>MOQ (t)</th></tr></thead>
-    <tbody></tbody>
-  </table>
+  <h2>Products</h2>
+  <p class="note">Changing a price also adds it to that product's price-trend chart.</p>
+  <div class="table-wrap">
+    <table id="tbl">
+      <thead><tr><th>Material</th><th>Price (USD/t)</th><th>Stock (t)</th><th>MOQ (t)</th></tr></thead>
+      <tbody></tbody>
+    </table>
+  </div>
 
   <button class="btn" id="dl">⬇ Download updated data.js</button>
-  <p class="note" id="status"></p>
+  <p id="status"></p>
 
-  <h3>How to publish the update</h3>
+  <h2>How to publish the update</h2>
   <ol>
     <li>Click the download button above — you get a new <code>data.js</code>.</li>
     <li>On GitHub: open your repository → click <code>data.js</code> → the pencil icon → paste the new content → Commit.</li>
-    <li>The site updates itself within a minute.</li>
+    <li>The site updates itself within a few minutes.</li>
   </ol>
 </div>
 
 <script src="data.js"></script>
 <script>
+"use strict";
+const el = (id) => document.getElementById(id);
 const tbody = document.querySelector("#tbl tbody");
+
 PRODUCTS.forEach((p, i) => {
   const tr = document.createElement("tr");
-  tr.innerHTML = `<td>${p.name}</td>
-    <td><input type="number" step="0.5" value="${p.basePrice}" data-i="${i}" data-f="basePrice"></td>
-    <td><input type="number" step="1" value="${p.stock}" data-i="${i}" data-f="stock"></td>
-    <td><input type="number" step="1" value="${p.moq}" data-i="${i}" data-f="moq"></td>`;
+  const name = document.createElement("td");
+  name.textContent = p.name;
+  tr.appendChild(name);
+  [["basePrice", "0.5", 0], ["stock", "1", 0], ["moq", "1", 1]].forEach(([field, step, min]) => {
+    const td = document.createElement("td");
+    const inp = document.createElement("input");
+    inp.type = "number"; inp.step = step; inp.min = min;
+    inp.value = p[field];
+    inp.dataset.i = i; inp.dataset.f = field;
+    td.appendChild(inp);
+    tr.appendChild(td);
+  });
   tbody.appendChild(tr);
 });
-document.getElementById("fxRate").value = USD_TO_EGP;
-document.getElementById("lastUpd").value = LAST_UPDATED;
 
-document.getElementById("dl").addEventListener("click", () => {
-  // apply edits
+el("fxRate").value = USD_TO_EGP;
+el("lastUpd").value = LAST_UPDATED;
+el("formEndpoint").value = SITE.FORM_ENDPOINT || "";
+el("contactEmail").value = SITE.CONTACT_EMAIL || "";
+el("whatsapp").value = SITE.WHATSAPP_NUMBER || "";
+
+function setStatus(msg, cls) {
+  const s = el("status");
+  s.textContent = msg;
+  s.className = cls || "";
+}
+
+el("dl").addEventListener("click", () => {
+  // ---- validate everything before changing anything ----
+  let firstBad = null;
+  const edits = [];
   document.querySelectorAll("input[data-i]").forEach((inp) => {
-    PRODUCTS[+inp.dataset.i][inp.dataset.f] = +inp.value || 0;
+    const v = Number(inp.value);
+    const min = inp.dataset.f === "moq" ? 1 : 0;
+    const ok = inp.value.trim() !== "" && Number.isFinite(v) && v >= min;
+    inp.classList.toggle("bad", !ok);
+    if (!ok && !firstBad) firstBad = inp;
+    edits.push({ i: Number(inp.dataset.i), f: inp.dataset.f, v });
   });
-  const fx = +document.getElementById("fxRate").value || USD_TO_EGP;
-  const upd = document.getElementById("lastUpd").value || LAST_UPDATED;
+  const fx = Number(el("fxRate").value);
+  const fxOk = Number.isFinite(fx) && fx > 0;
+  el("fxRate").classList.toggle("bad", !fxOk);
+  if (!fxOk && !firstBad) firstBad = el("fxRate");
 
-  const header = `/* ============================================================
+  const endpoint = el("formEndpoint").value.trim();
+  const endpointOk = endpoint === "" || /^https:\/\/\S+$/.test(endpoint);
+  el("formEndpoint").classList.toggle("bad", !endpointOk);
+  if (!endpointOk && !firstBad) firstBad = el("formEndpoint");
+
+  const email = el("contactEmail").value.trim();
+  const emailOk = email === "" || /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email);
+  el("contactEmail").classList.toggle("bad", !emailOk);
+  if (!emailOk && !firstBad) firstBad = el("contactEmail");
+
+  if (firstBad) {
+    firstBad.focus();
+    setStatus("⚠ Please fix the highlighted fields — nothing was downloaded.", "err");
+    return;
+  }
+
+  // ---- apply to copies so a second click starts from the same loaded data ----
+  const products = PRODUCTS.map((p) => ({ ...p, trend: Array.isArray(p.trend) ? p.trend.slice() : [] }));
+  edits.forEach(({ i, f, v }) => {
+    const p = products[i];
+    const value = f === "basePrice" ? v : Math.floor(v);
+    if (f === "basePrice" && value !== PRODUCTS[i].basePrice) {
+      p.trend.push(value);            // record the new price on the trend line
+      while (p.trend.length > 12) p.trend.shift();
+    }
+    p[f] = value;
+  });
+
+  const site = {
+    ...SITE,
+    FORM_ENDPOINT: endpoint,
+    CONTACT_EMAIL: email,
+    WHATSAPP_NUMBER: el("whatsapp").value.replace(/\D/g, ""),
+  };
+  const upd = el("lastUpd").value || LAST_UPDATED;
+
+  const file = `/* ============================================================
    OreVision Materials — Product & Market Data
    Generated by admin.html on ${new Date().toISOString().slice(0, 10)}
+   Prices are indicative global benchmarks (USD per metric tonne).
    ============================================================ */
 
 const LAST_UPDATED = ${JSON.stringify(upd)};
 
-const SITE = ${JSON.stringify(SITE, null, 2)};
+const SITE = ${JSON.stringify(site, null, 2)};
 
-const PRODUCTS = ${JSON.stringify(PRODUCTS, null, 2)};
+const PRODUCTS = ${JSON.stringify(products, null, 2)};
 
-const BENCHMARKS = ${JSON.stringify(BENCHMARKS.map(({live, ...b}) => b), null, 2)};
+const BENCHMARKS = ${JSON.stringify(BENCHMARKS, null, 2)};
 
 const USD_TO_EGP = ${fx};
 `;
+  const url = URL.createObjectURL(new Blob([file], { type: "text/javascript" }));
   const a = document.createElement("a");
-  a.href = URL.createObjectURL(new Blob([header], { type: "text/javascript" }));
+  a.href = url;
   a.download = "data.js";
+  document.body.appendChild(a);
   a.click();
-  URL.revokeObjectURL(a.href);
-  document.getElementById("status").textContent =
-    "✓ Downloaded. Replace data.js in your site folder / repository with this file.";
+  a.remove();
+  setTimeout(() => URL.revokeObjectURL(url), 1500);
+  setStatus("✓ Downloaded. Replace data.js in your site folder / repository with this file.", "ok");
 });
 </script>
 </body>

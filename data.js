@@ -7,11 +7,19 @@
 const LAST_UPDATED = "2026-11-16";
 
 /* ---- Site settings: fill these in to activate contact features ----
-   CONTACT_EMAIL  : where "Send Inquiry" emails go (opens the buyer's
-                    email app pre-filled). Leave "" to keep the demo note.
-   WHATSAPP_NUMBER: international format, digits only, e.g. "2010XXXXXXXX".
+   (easiest way: open admin.html, fill the Settings boxes, download)
+   FORM_ENDPOINT  : a form-service URL (e.g. a Formspree endpoint like
+                    "https://formspree.io/f/abcdwxyz"). Inquiries are
+                    then delivered to your inbox without the buyer
+                    leaving the site. Best option.
+   CONTACT_EMAIL  : fallback — "Send Inquiry" opens the buyer's email
+                    app pre-filled and addressed to you.
+                    With both empty, the form tells the visitor that
+                    nothing was sent.
+   WHATSAPP_NUMBER: international format, e.g. "2010XXXXXXXX".
                     Leave "" to hide the WhatsApp button.               */
 const SITE = {
+  FORM_ENDPOINT: "",
   CONTACT_EMAIL: "",
   WHATSAPP_NUMBER: "",
   QUOTE_VALID_DAYS: 14,
