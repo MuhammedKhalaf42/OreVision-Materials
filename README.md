@@ -4,13 +4,14 @@ A static marketplace website for AI-sorted mining materials — the selling coun
 [OreVision showcase site](https://mohammedmadany.github.io/OreVision-Web-Showcase/).
 
 ## Features
-- **Materials catalog** — 13 Egyptian mining products, including natural red iron oxide powder, with grade, origin, uses, MOQ and stock levels
-- **Market reference prices** — scrolling ticker + table for iron ore, iron oxide, phosphate, ilmenite and silica sand, each showing its date and source
-- **Price trend sparklines** on every product card
-- **Quote cart** — add quantities, see an indicative total, and auto-fill the inquiry form (saved in the browser, survives reload)
-- **Currency toggle** — USD ⇄ EGP
-- **Dark / light theme**, fully responsive (phone-ready)
-- Search, category filter, sorting, in-stock filter
+- **Spec-sheet catalog** — a sortable table (Material · Form · Purity · Origin · Price · MOQ · Stock) with a card view toggle; 18 grades of 13 Egyptian materials
+- **Same material, several grades** — e.g. iron oxide as lump, 325-mesh powder and 600-mesh micronized, each with its own purity, price and stock
+- **Country tabs** — Egypt live; Sudan shown as "Coming soon" with a register-interest button (edit `COUNTRIES` in `data.js` to open it)
+- **A page for every material** (`#/m/<material>/<grade>`) — grade comparison, typical chemical analysis, real price history, related market price, map of the deposit region, geology, properties and HS code, applications, mine-to-port steps, packaging and delivery terms, FAQ, order calculator, sample request, printable datasheet, shareable link
+- **Market reference prices** — ticker + table, each with its date and source
+- **Quote cart**, price alerts, USD ⇄ EGP, English ⇄ Arabic (right-to-left), dark/light theme, phone-ready
+
+Material page text (history, geology, map location, HS codes) lives in `materials.js`.
 
 ## Activate contact features (2-minute setup)
 Easiest: open **`admin.html`**, fill in the *Contact settings* boxes, download the new `data.js`.
@@ -25,10 +26,10 @@ Until one of the first two is set, the form tells visitors honestly that nothing
 ```bash
 node tests/run-tests.js
 ```
-22 checks covering data integrity (every product has a photo, credits and Arabic translation; English and Arabic keys match), quantity and discount rules, and recovery from corrupt saved data. Run it after editing `data.js` or `i18n.js`.
+34 checks covering data integrity (every product has a photo, country, form, specs and Arabic translation; every material has a page entry in both languages; English and Arabic keys match), quantity and discount rules, price-history rules, and recovery from corrupt saved data. Run it after editing `data.js` or `i18n.js`.
 
 ## How the site protects itself
-- A typo in `data.js` (text where a number should be, a missing trend, a duplicate id) is repaired or skipped at startup instead of breaking the page.
+- A typo in `data.js` (text where a number should be, a broken price history, a duplicate id) is repaired or skipped at startup instead of breaking the page.
 - Visitors' saved carts are re-validated on every visit: removed or sold-out products are dropped, quantities are kept between the minimum order and the stock on hand.
 - The live USD→EGP rate times out after 6 seconds, is cached for 15 minutes, ignores implausible values, and falls back to `USD_TO_EGP` in `data.js`.
 

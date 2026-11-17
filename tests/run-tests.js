@@ -1,5 +1,5 @@
 /* Logic tests for OreVision Materials.  Run:  node tests/run-tests.js
-   Loads data.js, i18n.js and app.js into a sandbox with a stub browser
+   Loads data.js, i18n.js, materials.js and app.js into a sandbox with a stub browser
    environment and checks the pure logic (no real DOM needed).            */
 "use strict";
 const fs = require("fs");
@@ -25,7 +25,7 @@ function makeSandbox(storage = {}) {
   };
   sandbox.window = sandbox;
   vm.createContext(sandbox);
-  for (const f of ["data.js", "i18n.js", "app.js"]) vm.runInContext(read(f), sandbox, { filename: f });
+  for (const f of ["data.js", "i18n.js", "materials.js", "app.js"]) vm.runInContext(read(f), sandbox, { filename: f });
   return { run: (code) => vm.runInContext(code, sandbox), mem };
 }
 
@@ -43,9 +43,42 @@ console.log("Data integrity");
 {
   const { run } = makeSandbox();
   run("normalizeData()");
-  test("every product has id, name, positive price, MOQ ≥ 1, trend ≥ 2 points", () => {
-    const bad = run(`PRODUCTS.filter(p => !p.id || !p.name || !(p.basePrice > 0) || p.moq < 1 || p.trend.length < 2).map(p => p.id)`);
+  test("every product has id, name, positive price, MOQ ≥ 1 and at least one recorded price", () => {
+    const bad = run(`PRODUCTS.filter(p => !p.id || !p.name || !(p.basePrice > 0) || p.moq < 1 || !p.history.length).map(p => p.id)`);
     eq(bad, []);
+  });
+  test("price history is real data: valid dates, oldest first, newest entry equals the current price", () => {
+    eq(run(`PRODUCTS.filter(p => p.history.some((h, i) => !isIsoDate(h.date) || !(h.price > 0) || (i && h.date <= p.history[i - 1].date))
+      || p.history[p.history.length - 1].price !== p.basePrice).map(p => p.id)`), []);
+  });
+  test("every product's country exists in COUNTRIES", () => {
+    eq(run("PRODUCTS.filter(p => !COUNTRIES.some(c => c.code === p.country)).map(p => p.id)"), []);
+  });
+  test("every material has a MATERIALS entry with English and Arabic text and a map location", () => {
+    eq(run(`[...new Set(PRODUCTS.map(p => p.material))].filter(m => { const x = MATERIALS[m];
+      return !x || !x.en || !x.ar || !x.en.summary || !x.ar.summary || !Array.isArray(x.ar.apps) || !x.location || !Number.isFinite(x.location.lat); })`), []);
+  });
+  test("every product has a form and at least one spec line", () => {
+    eq(run("PRODUCTS.filter(p => !p.form || !p.specs.length).map(p => p.id)"), []);
+  });
+  test("every spec label is a formula or has an Arabic translation", () => {
+    eq(run(`[...new Set(PRODUCTS.flatMap(p => p.specs.map(s => s[0])))]
+      .filter(l => !/^[A-Z][A-Za-z0-9()·,]*$/.test(l.replace(/\s/g, '')) || /[a-z]{3}/.test(l))
+      .filter(l => !AR_SPEC_LABELS[l])`), []);
+  });
+  test("every Arabic product entry has name, form, uses and origin", () => {
+    eq(run("PRODUCTS.filter(p => { const a = AR_PRODUCTS[p.id]; return !a || !a.name || !a.form || !a.uses || !a.origin; }).map(p => p.id)"), []);
+  });
+  test("material page route parses and unknown routes are rejected", () => {
+    eq(run("parseRoute('#/m/iron-oxide/iron-oxide-powder')"), { material: "iron-oxide", id: "iron-oxide-powder" });
+    eq(run("parseRoute('#/m/talc')"), { material: "talc", id: "" });
+    eq(run("parseRoute('#products')"), null);
+    eq(run("parseRoute('#/m/%E0%A4%A')"), { material: "", id: "" });
+  });
+  test("chemical formulas get subscripts without touching values", () => {
+    eq(run("chem('Fe2O3 ≥ 80%')"), "Fe<sub>2</sub>O<sub>3</sub> ≥ 80%");
+    eq(run("chem('CaSO4·2H2O')"), "CaSO<sub>4</sub>·2H<sub>2</sub>O");
+    eq(run("chem('<b>')"), "&lt;b&gt;");
   });
   test("product ids are unique", () => {
     eq(run("new Set(PRODUCTS.map(p => p.id)).size === PRODUCTS.length"), true);
@@ -62,8 +95,8 @@ console.log("Data integrity");
     eq(run("Object.keys(I18N.en).filter(k => !(k in I18N.ar))"), [], "missing in ar:");
     eq(run("Object.keys(I18N.ar).filter(k => !(k in I18N.en))"), [], "missing in en:");
   });
-  test("every product has a photo file", () => {
-    const ids = run("PRODUCTS.map(p => p.id)");
+  test("every product's photo file exists", () => {
+    const ids = run("PRODUCTS.map(p => p.image)");
     eq(ids.filter((id) => !fs.existsSync(path.join(root, "images", id + ".jpg"))), []);
   });
   test("every reference price has a name, a price or range, a date and a source", () => {
@@ -147,14 +180,14 @@ console.log("Resilience to bad saved data");
   });
   test("broken entries in data.js are repaired or dropped", () => {
     const { run } = makeSandbox();
-    run(`PRODUCTS.push({id: 'x1', name: 'Bad numbers', basePrice: 'abc', stock: -5, moq: 0, trend: [5]});
+    run(`PRODUCTS.push({id: 'x1', name: 'Bad numbers', basePrice: 'abc', stock: -5, moq: 0, trend: [5], specs: [['Fe'], 'x', ['SiO2', '≤ 5%']], history: [{date: 'nope', price: 5}, {date: '2026-01-02', price: -1}]});
          PRODUCTS.push({name: 'No id'});
          PRODUCTS.push({id: 'gypsum', name: 'Duplicate'});
          normalizeData();`);
     eq(run("PRODUCTS.filter(p => p.name === 'No id' || p.name === 'Duplicate').length"), 0);
-    eq(run("(({basePrice, stock, moq, trend}) => ({basePrice, stock, moq, n: trend.length}))(byId('x1'))"),
-      { basePrice: 0, stock: 0, moq: 1, n: 2 });
-    run("sparkline(byId('x1').trend); series90(byId('x1'));"); // must not throw
+    eq(run("(({basePrice, stock, moq, country, material, form, image, specs, history, trend}) => ({basePrice, stock, moq, country, material, form, image, specs, history, trend}))(byId('x1'))"),
+      { basePrice: 0, stock: 0, moq: 1, country: "EG", material: "x1", form: "", image: "x1", specs: [["SiO2", "≤ 5%"]], history: [] });
+    run("sparkline(byId('x1').history); historyRows(byId('x1'));"); // must not throw
   });
 }
 
@@ -170,8 +203,18 @@ console.log("Formatting and escaping");
   test("HTML special characters are escaped", () => {
     eq(run(`esc('<img src=x onerror=alert(1)> & "q"')`), "&lt;img src=x onerror=alert(1)&gt; &amp; &quot;q&quot;");
   });
-  test("90-day series has 90 finite positive points for every product", () => {
-    eq(run("PRODUCTS.filter(p => { const s = series90(p); return s.length !== 90 || s.some(v => !(v > 0)); }).map(p => p.id)"), []);
+  test("history table shows the change between recorded prices, newest first", () => {
+    const html = run("historyRows({history: [{date: '2026-01-01', price: 100}, {date: '2026-02-01', price: 110}], unit: 't'})");
+    if (!/\+10\.0%/.test(html)) throw new Error("missing +10.0% in " + html);
+    if (html.indexOf("110") > html.indexOf("First recorded")) throw new Error("newest row should come first");
+  });
+  test("sparkline needs two real prices", () => {
+    eq(run("sparkline([{date: '2026-01-01', price: 5}])"), "");
+  });
+  test("CSV includes country and form, and guards against formula injection", () => {
+    const csv = run("csvText()");
+    if (!csv.includes('"Country"') || !csv.includes('"Form"')) throw new Error("missing columns");
+    if (!csv.includes('"Egypt"')) throw new Error("missing country name");
   });
 }
 

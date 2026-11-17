@@ -81,7 +81,7 @@ const tbody = document.querySelector("#tbl tbody");
 PRODUCTS.forEach((p, i) => {
   const tr = document.createElement("tr");
   const name = document.createElement("td");
-  name.textContent = p.name;
+  name.textContent = p.form ? `${p.name} — ${p.form}` : p.name;
   tr.appendChild(name);
   [["basePrice", "0.5", 0], ["stock", "1", 0], ["moq", "1", 1]].forEach(([field, step, min]) => {
     const td = document.createElement("td");
@@ -185,6 +185,8 @@ el("dl").addEventListener("click", () => {
 const LAST_UPDATED = ${JSON.stringify(upd)};
 
 const SITE = ${JSON.stringify(site, null, 2)};
+
+const COUNTRIES = ${JSON.stringify(typeof COUNTRIES !== "undefined" ? COUNTRIES : [], null, 2)};
 
 const PRODUCTS = ${JSON.stringify(products, null, 2)};
 

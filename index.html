@@ -70,21 +70,27 @@
     </div>
     <div class="hero-stats">
       <div><strong id="statProducts">0</strong><span data-i18n="stats.materials">Materials</span></div>
+      <div><strong id="statGrades">0</strong><span data-i18n="stats.grades">Grades listed</span></div>
       <div><strong id="statStock">0</strong><span data-i18n="stats.stock">Tonnes in stock</span></div>
-      <div><strong>98%</strong><span data-i18n="stats.purity">Sorted purity</span></div>
-      <div><strong>13+</strong><span data-i18n="stats.markets">Export markets</span></div>
+      <div><strong id="statValidity">14</strong><span data-i18n="stats.validity">Days quote validity</span></div>
     </div>
   </div>
 </section>
 
+<!-- ======= Material page (shown for #/m/<material>/<grade>) ======= -->
+<main class="material-page" id="materialPage" hidden></main>
+
 <!-- ======= Products ======= -->
 <section class="section" id="products">
-  <div class="section-head">
+  <div class="section-head left">
     <h2 data-i18n="catalog.title">Materials Catalog</h2>
     <p><span data-i18n="catalog.sub">Prices (indicative FOB, per metric tonne) and stock levels last updated</span> <span id="lastUpdated"></span>.</p>
   </div>
 
-  <div class="toolbar">
+  <div class="country-tabs" id="countryTabs" role="tablist" aria-label="Country of origin"></div>
+  <div class="soon-panel" id="soonPanel" hidden></div>
+
+  <div class="toolbar" id="toolbar">
     <input type="search" id="searchInput" data-i18n-ph="catalog.search" placeholder="Search materials, grades, uses…" aria-label="Search materials">
     <select id="categoryFilter" aria-label="Filter by category">
       <option value="" data-i18n="catalog.allCats">All categories</option>
@@ -96,9 +102,16 @@
       <option value="stock" data-i18n="catalog.sortStock">Stock: Most first</option>
     </select>
     <label class="check"><input type="checkbox" id="inStockOnly"> <span data-i18n="catalog.inStockOnly">In stock only</span></label>
+    <div class="view-toggle" role="group" aria-label="View">
+      <button type="button" id="viewTable" aria-pressed="true" data-i18n="view.table">Table</button>
+      <button type="button" id="viewCards" aria-pressed="false" data-i18n="view.cards">Cards</button>
+    </div>
   </div>
 
-  <div class="product-grid" id="productGrid"></div>
+  <div id="catalogBody">
+    <p class="catalog-count" id="catalogCount"></p>
+    <div class="spec-table-wrap" id="productGrid"></div>
+  </div>
   <div class="catalog-actions">
     <button class="btn-outline" id="downloadCsv" type="button" data-i18n="catalog.csv">⬇ Download Price List (CSV)</button>
   </div>
@@ -195,20 +208,6 @@
   </div>
 </aside>
 
-<!-- ======= Product detail modal ======= -->
-<div class="modal-backdrop" id="modalBackdrop" hidden></div>
-<div class="modal" id="productModal" role="dialog" aria-modal="true" hidden>
-  <div class="modal-head">
-    <h3 id="modalTitle"></h3>
-    <button class="btn-ghost" id="closeModal">✕</button>
-  </div>
-  <div class="modal-body" id="modalBody"></div>
-  <div class="modal-foot">
-    <button class="btn-outline" id="printDatasheet" type="button" data-i18n="modal.print">🖨 Print Datasheet</button>
-    <button class="btn-primary" id="modalAdd" type="button" data-i18n="modal.add">Add to Quote</button>
-  </div>
-</div>
-
 <!-- ======= Exit popup ======= -->
 <div class="modal-backdrop" id="popupBackdrop" hidden></div>
 <div class="modal exit-popup" id="exitPopup" role="dialog" aria-modal="true" hidden>
@@ -233,6 +232,7 @@
 
 <script src="data.js"></script>
 <script src="i18n.js"></script>
+<script src="materials.js"></script>
 <script src="app.js"></script>
 </body>
 </html>
