@@ -218,5 +218,62 @@ console.log("Formatting and escaping");
   });
 }
 
+
+console.log("Operations console");
+{
+  const sb = { console, URL, Date, JSON };
+  sb.window = sb;
+  vm.createContext(sb);
+  for (const f of ["data.js", "datafile.js", "ops.js"]) vm.runInContext(read(f), sb, { filename: f });
+  const run = (code) => vm.runInContext(code, sb);
+  test("references are sequential per year and survive gaps", () => {
+    eq(run("nextId([], 'RFQ', '2026')"), "RFQ-2026-0001");
+    eq(run("nextId([{id:'RFQ-2026-0007'},{id:'RFQ-2025-0099'},{id:'junk'}], 'RFQ', '2026')"), "RFQ-2026-0008");
+  });
+  test("a corrupt or foreign backup is repaired, not trusted", () => {
+    eq(run("JSON.stringify(sanitizeDb(null))"), JSON.stringify({ version: 1, rfqs: [], lots: [], shipments: [] }));
+    const d = run(`sanitizeDb({ rfqs: [{id:'A', qty:'12', status:'hacked'}, {id:'A', qty: 1}, {qty: 5}, null],
+      lots: [{id:'L', tonnes: -4, status:'released'}], shipments: [{id:'S', docs: {coa: 1, evil: true}}] })`);
+    eq([d.rfqs.length, d.rfqs[0].qty, d.rfqs[0].status, d.lots[0].tonnes, d.shipments[0].status, Object.keys(d.shipments[0].docs).length, d.shipments[0].docs.coa],
+      [1, 12, "new", 0, "planned", 6, true]);
+  });
+  test("only released lots count; won contracts commit stock until their shipment sails", () => {
+    run(`var P = [{id:'g1', name:'G', moq: 10, stock: 999, basePrice: 100}];
+      var D = sanitizeDb({ lots: [{id:'L1', productId:'g1', tonnes: 500, status:'released'}, {id:'L2', productId:'g1', tonnes: 300, status:'pending'},
+        {id:'L3', productId:'g1', tonnes: 200, status:'rejected'}, {id:'L4', productId:'g1', tonnes: 50, status:'shipped'}],
+        rfqs: [{id:'R1', productId:'g1', qty: 120, status:'won'}, {id:'R2', productId:'g1', qty: 40, status:'quoted', quotedPrice: 110}],
+        shipments: [{id:'S1', rfqId:'R1', status:'loading'}] });`);
+    eq(run("(({released, pending, committed, available, short}) => ({released, pending, committed, available, short}))(stockByGrade(D, P)[0])"),
+      { released: 500, pending: 300, committed: 120, available: 380, short: 0 });
+    run("D.shipments[0].status = 'sailed'");
+    eq(run("stockByGrade(D, P)[0].available"), 500);
+  });
+  test("dashboard figures: pipeline, win rate, shortfalls", () => {
+    run(`var D2 = sanitizeDb({ lots: [{id:'L1', productId:'g1', tonnes: 50, status:'released'}],
+      rfqs: [{id:'R1', productId:'g1', qty: 120, status:'won'}, {id:'R2', productId:'g1', qty: 40, status:'quoted', quotedPrice: 110},
+             {id:'R3', productId:'g1', qty: 10, status:'lost'}, {id:'R4', productId:'g1', qty: 10, status:'new', targetPrice: 90}] });`);
+    const k = run("kpis(D2, P)");
+    eq([k.openRfqs, k.pipelineValue, k.wonCount, k.wonValue, k.winRate, k.shortfalls.length], [2, 40 * 110 + 10 * 90, 1, 12000, 50, 1]);
+  });
+  test("publishing stock only changes grades that have lots", () => {
+    run(`var P2 = [{id:'g1', name:'A', moq: 1, stock: 999}, {id:'g2', name:'B', moq: 1, stock: 777}];
+      var D3 = sanitizeDb({ lots: [{id:'L1', productId:'g1', tonnes: 250.7, status:'released'}] });`);
+    eq(run("productsWithLotStock(D3, P2).map(p => p.stock)"), [250, 777]);
+  });
+  test("generated data.js is valid and keeps countries, products and prices", () => {
+    const text = run(`buildDataFile({ lastUpdated: '2026-11-17', site: SITE, countries: COUNTRIES, products: cloneProducts(productsWithLotStock(sampleDb(PRODUCTS, '2026'), PRODUCTS)), benchmarks: BENCHMARKS, fx: 50 })`);
+    const sb2 = {};
+    vm.createContext(sb2);
+    vm.runInContext(text + ";this.out = {n: PRODUCTS.length, c: COUNTRIES.length, d: LAST_UPDATED, fx: USD_TO_EGP, trend: PRODUCTS.some(p => 'trend' in p)}", sb2);
+    eq(sb2.out, { n: run("PRODUCTS.length"), c: run("COUNTRIES.length"), d: "2026-11-17", fx: 50, trend: false });
+  });
+  test("sample data is flagged as sample and references real grades", () => {
+    eq(run("(d => [d.sample, d.rfqs.every(r => PRODUCTS.some(p => p.id === r.productId)), d.lots.every(l => PRODUCTS.some(p => p.id === l.productId))])(sampleDb(PRODUCTS, '2026'))"), [true, true, true]);
+  });
+  test("CSV export guards against spreadsheet formulas", () => {
+    eq(run("toCsv([['=HYPERLINK(1)', 5]]).slice(1)"), `"'=HYPERLINK(1)","5"`);
+  });
+}
+
 console.log(`\n${passed} passed, ${failed} failed`);
 process.exit(failed ? 1 : 0);

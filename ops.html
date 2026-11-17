@@ -1,0 +1,169 @@
+<!doctype html>
+<html lang="en" data-theme="light">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>OreVision Operations</title>
+<meta name="robots" content="noindex, nofollow">
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='3' fill='%230d3b66'/%3E%3Cpath d='M6 24 13 10l5 9 3-5 5 10z' fill='%23fff'/%3E%3C/svg%3E">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="styles.css">
+<style>
+  body { background: var(--bg); }
+  .ops { display: grid; grid-template-columns: 220px minmax(0, 1fr); min-height: 100vh; }
+  .side { background: var(--navy-deep); color: #c9d6e2; display: flex; flex-direction: column; position: sticky; top: 0; height: 100vh; }
+  .side-brand { display: flex; align-items: center; gap: 10px; padding: 18px 18px 16px; border-bottom: 1px solid rgba(255,255,255,.1); color: #fff; }
+  .side-brand .brand-mark rect { fill: #fff; } .side-brand .brand-mark path { fill: var(--navy-deep); }
+  .side-brand small { display: block; color: #8fb0cf; font-size: .62rem; letter-spacing: .2em; font-weight: 600; }
+  .side nav { display: flex; flex-direction: column; padding: 10px 0; }
+  .side nav a { display: flex; justify-content: space-between; align-items: center; padding: 9px 18px; font-size: .9rem; color: #c9d6e2; border-inline-start: 3px solid transparent; }
+  .side nav a:hover { background: rgba(255,255,255,.06); color: #fff; }
+  .side nav a[aria-current="true"] { background: rgba(255,255,255,.1); color: #fff; border-inline-start-color: #6aa3d8; font-weight: 600; }
+  .side nav .count { background: #6aa3d8; color: var(--navy-deep); font-size: .7rem; font-weight: 700; border-radius: 2px; padding: 0 6px; }
+  .side-foot { margin-top: auto; padding: 14px 18px; border-top: 1px solid rgba(255,255,255,.1); font-size: .76rem; display: flex; flex-direction: column; gap: 6px; }
+  .side-foot a { color: #9fc0de; } .side-foot a:hover { color: #fff; }
+  .main { min-width: 0; }
+  .topbar { background: var(--surface); border-bottom: 1px solid var(--border); padding: 12px 24px; display: flex; align-items: center; gap: 12px; flex-wrap: wrap; position: sticky; top: 0; z-index: 5; }
+  .topbar h1 { font-size: 1.15rem; font-weight: 600; margin-inline-end: auto; }
+  .topbar .meta { color: var(--muted); font-size: .78rem; }
+  .small-btn { padding: 6px 12px; font-size: .82rem; }
+  .content { padding: 20px 24px 40px; display: flex; flex-direction: column; gap: 16px; }
+  .notice { background: var(--primary-soft); border: 1px solid var(--border); border-inline-start: 3px solid var(--primary); padding: 10px 14px; font-size: .85rem; }
+  .warn-box, #sampleBanner { background: var(--amber-soft); border: 1px solid var(--border); border-inline-start: 3px solid var(--amber); padding: 10px 14px; font-size: .85rem; }
+  .kpi-row { display: grid; grid-template-columns: repeat(5, minmax(0, 1fr)); border: 1px solid var(--border); background: var(--surface); box-shadow: var(--shadow); }
+  .kpi { padding: 14px 16px; border-inline-start: 1px solid var(--border); display: flex; flex-direction: column; border-top: 3px solid var(--primary); }
+  .kpi:first-child { border-inline-start: none; }
+  .kpi-good { border-top-color: var(--green); } .kpi-warn { border-top-color: var(--amber); }
+  .kpi span { color: var(--muted); font-size: .7rem; text-transform: uppercase; letter-spacing: .06em; font-weight: 600; }
+  .kpi strong { font-size: 1.5rem; font-weight: 600; font-variant-numeric: tabular-nums; }
+  .kpi em { font-style: normal; color: var(--muted); font-size: .78rem; }
+  .ops-grid { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1.6fr); gap: 16px; }
+  .panel { background: var(--surface); border: 1px solid var(--border); box-shadow: var(--shadow); padding: 16px; min-width: 0; }
+  .panel h2 { font-size: .82rem; text-transform: uppercase; letter-spacing: .06em; font-weight: 600; color: var(--primary); margin-bottom: 12px; display: flex; justify-content: space-between; align-items: baseline; gap: 10px; }
+  .panel h2 .muted { text-transform: none; letter-spacing: 0; font-weight: 400; }
+  .panel p { font-size: .9rem; margin-bottom: 10px; }
+  .link { color: var(--link); font-weight: 600; text-transform: none; letter-spacing: 0; font-size: .82rem; cursor: pointer; }
+  .link:hover { text-decoration: underline; }
+  .table-scroll { overflow-x: auto; }
+  .ops-table { width: 100%; border-collapse: collapse; font-size: .85rem; font-variant-numeric: tabular-nums; }
+  .ops-table th, .ops-table td { padding: 7px 10px; border-bottom: 1px solid var(--border); text-align: start; vertical-align: middle; }
+  .ops-table thead th { background: var(--surface-2); color: var(--muted); font-size: .68rem; text-transform: uppercase; letter-spacing: .06em; font-weight: 600; white-space: nowrap; border-bottom-color: var(--border-strong); }
+  .ops-table tbody tr:hover { background: var(--primary-soft); }
+  .ops-table tfoot td { font-size: .8rem; color: var(--muted); border-bottom: none; background: var(--surface-2); }
+  .ops-table .num { text-align: end; white-space: nowrap; }
+  .ops-table .nowrap { white-space: nowrap; }
+  .ops-table .sub { display: block; color: var(--muted); font-size: .74rem; }
+  .row-bad td { background: var(--red-soft); }
+  .ref { background: none; border: none; color: var(--link); font: inherit; font-weight: 600; cursor: pointer; padding: 0; white-space: nowrap; }
+  .ref:hover { text-decoration: underline; }
+  .pill { display: inline-block; font-size: .68rem; font-weight: 600; padding: 1px 7px; border-radius: 2px; text-transform: uppercase; letter-spacing: .04em; white-space: nowrap; background: var(--surface-2); color: var(--muted); }
+  .pill-ok, .pill-rfq-won, .pill-lot-released, .pill-shipment-delivered { background: var(--green-soft); color: var(--green); }
+  .pill-warn, .pill-rfq-negotiation, .pill-lot-pending, .pill-shipment-loading { background: var(--amber-soft); color: var(--amber); }
+  .pill-bad, .pill-rfq-lost, .pill-lot-rejected { background: var(--red-soft); color: var(--red); }
+  .pill-rfq-quoted, .pill-shipment-sailed, .pill-rfq-new { background: var(--primary-soft); color: var(--primary); }
+  .inline-status { font: inherit; font-size: .78rem; font-weight: 600; padding: 3px 6px; border: 1px solid var(--border-strong); border-radius: 2px; background: var(--surface); color: var(--text); }
+  .inline-status.st-won, .inline-status.st-released, .inline-status.st-delivered { color: var(--green); border-color: var(--green); }
+  .inline-status.st-lost, .inline-status.st-rejected { color: var(--red); border-color: var(--red); }
+  .inline-status.st-negotiation, .inline-status.st-pending, .inline-status.st-loading { color: var(--amber); border-color: var(--amber); }
+  .ops-toolbar { display: flex; gap: 8px; align-items: center; flex-wrap: wrap; margin-bottom: 12px; }
+  .ops-toolbar input, .ops-toolbar select { background: var(--surface); border: 1px solid var(--border-strong); color: var(--text); padding: 6px 10px; border-radius: var(--radius); font: inherit; font-size: .85rem; }
+  .ops-toolbar input { min-width: 220px; }
+  .spacer { flex: 1; }
+  .empty { color: var(--muted); font-size: .88rem; padding: 10px 0; }
+  .hint { color: var(--muted); font-size: .78rem; margin-top: 10px; margin-bottom: 0 !important; }
+  .alerts { list-style: none; display: flex; flex-direction: column; gap: 6px; font-size: .86rem; }
+  .alerts li { padding: 8px 10px; background: var(--amber-soft); border-inline-start: 3px solid var(--amber); }
+  .alerts li.bad { background: var(--red-soft); border-inline-start-color: var(--red); }
+  .docs-meter { display: inline-block; width: 60px; height: 6px; background: var(--surface-2); border: 1px solid var(--border); vertical-align: middle; position: relative; }
+  .docs-meter span { position: absolute; inset: 0 auto 0 0; background: var(--green); }
+  .publish-row { display: flex; gap: 10px; flex-wrap: wrap; margin: 14px 0; }
+  .steps { padding-inline-start: 20px; color: var(--muted); font-size: .86rem; }
+  code { background: var(--surface-2); padding: 1px 5px; border-radius: 2px; font-size: .85em; }
+  dialog { margin: auto; border: 1px solid var(--border-strong); background: var(--surface); color: var(--text); padding: 0; width: min(720px, calc(100vw - 24px)); box-shadow: 0 12px 40px rgba(0,0,0,.25); }
+  dialog::backdrop { background: rgba(10,20,30,.5); }
+  .dlg-head { padding: 14px 18px; background: var(--surface-2); border-bottom: 1px solid var(--border); font-weight: 600; }
+  .dlg-body { padding: 16px 18px; display: grid; grid-template-columns: 1fr 1fr; gap: 12px 14px; max-height: 65vh; overflow-y: auto; }
+  .dlg-body label { display: flex; flex-direction: column; gap: 4px; font-size: .78rem; font-weight: 600; color: var(--muted); }
+  .dlg-body label.wide { grid-column: 1 / -1; }
+  .dlg-body input, .dlg-body select, .dlg-body textarea { background: var(--surface); border: 1px solid var(--border-strong); color: var(--text); padding: 7px 9px; border-radius: var(--radius); font: inherit; font-size: .9rem; font-weight: 400; }
+  .doc-checks { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 6px; }
+  .chk { flex-direction: row !important; align-items: center; gap: 6px !important; font-weight: 400 !important; color: var(--text) !important; font-size: .85rem !important; }
+  .dlg-foot { padding: 12px 18px; border-top: 1px solid var(--border); display: flex; gap: 8px; }
+  .dlg-foot .danger { margin-inline-end: auto; color: var(--red); border-color: var(--red); background: transparent; }
+  @media (max-width: 1100px) { .kpi-row { grid-template-columns: repeat(3, minmax(0, 1fr)); } .kpi:nth-child(4) { border-inline-start: none; } .kpi:nth-child(n+4) { border-top-width: 3px; } .ops-grid { grid-template-columns: 1fr; } }
+  @media (max-width: 760px) {
+    .ops { grid-template-columns: minmax(0, 1fr); }
+    .side, .main { min-width: 0; }
+    .topbar h1 { width: 100%; }
+    .side { position: static; height: auto; }
+    .side nav { flex-direction: row; overflow-x: auto; padding: 0; }
+    .side nav a { border-inline-start: none; border-bottom: 3px solid transparent; white-space: nowrap; gap: 6px; }
+    .side nav a[aria-current="true"] { border-bottom-color: #6aa3d8; }
+    .side-foot { display: none; }
+    .kpi-row { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+    .kpi { border-inline-start: none !important; }
+    .content, .topbar { padding-inline: 14px; }
+    .dlg-body { grid-template-columns: 1fr; }
+    .doc-checks { grid-template-columns: 1fr 1fr; }
+  }
+</style>
+</head>
+<body>
+<div class="ops">
+  <aside class="side">
+    <div class="side-brand">
+      <svg class="brand-mark" viewBox="0 0 32 32" width="30" height="30" aria-hidden="true"><rect width="32" height="32" rx="3"/><path d="M6 24 13 10l5 9 3-5 5 10z"/></svg>
+      <div><strong>OreVision</strong><small>OPERATIONS</small></div>
+    </div>
+    <nav aria-label="Operations">
+      <a href="#dashboard" data-tab-btn="dashboard">Dashboard</a>
+      <a href="#rfqs" data-tab-btn="rfqs">RFQs &amp; Orders <span class="count" data-count="rfqs" hidden></span></a>
+      <a href="#inventory" data-tab-btn="inventory">Inventory <span class="count" data-count="inventory" hidden></span></a>
+      <a href="#shipments" data-tab-btn="shipments">Shipments <span class="count" data-count="shipments" hidden></span></a>
+      <a href="#customers" data-tab-btn="customers">Customers</a>
+      <a href="#website" data-tab-btn="website">Website</a>
+    </nav>
+    <div class="side-foot">
+      <a href="index.html" target="_blank" rel="noopener">Public price list ↗</a>
+      <a href="admin.html">Price list admin</a>
+      <span>Price list dated <span id="lastUpdated"></span></span>
+    </div>
+  </aside>
+
+  <div class="main">
+    <div class="topbar">
+      <h1 id="pageTitle">Dashboard</h1>
+      <span class="meta" id="saveState">Data is stored in this browser</span>
+      <button class="util-btn" id="exportBackup" type="button">Export backup</button>
+      <button class="util-btn" id="importBackup" type="button">Import backup</button>
+      <input type="file" id="importFile" accept="application/json,.json" hidden>
+      <button class="util-btn" id="loadSample" type="button">Load sample data</button>
+      <button class="util-btn" id="clearAll" type="button">Clear all data</button>
+    </div>
+    <div class="content">
+      <p id="sampleBanner" hidden><strong>Sample data loaded.</strong> These records are examples for exploring the console. Use “Clear all data” before entering real records.</p>
+      <div id="view"></div>
+      <p class="notice">Records are kept in <strong>this browser on this computer</strong> only, and are not visible to visitors of the public site. Export a backup regularly; to share one live system across your team, the next step is a hosted database (see README).</p>
+    </div>
+  </div>
+</div>
+
+<dialog id="recordDialog">
+  <form id="recordForm" method="dialog">
+    <div class="dlg-head" id="formTitle">Record</div>
+    <div class="dlg-body" id="recordFields"></div>
+    <div class="dlg-foot">
+      <button class="btn-outline small-btn danger" id="formDelete" type="button">Delete</button>
+      <button class="btn-outline small-btn" id="formCancel" type="button">Cancel</button>
+      <button class="btn-primary small-btn" type="submit">Save</button>
+    </div>
+  </form>
+</dialog>
+<div class="toast" id="toast" role="status" aria-live="polite" hidden></div>
+
+<script src="data.js"></script>
+<script src="datafile.js"></script>
+<script src="ops.js"></script>
+</body>
+</html>

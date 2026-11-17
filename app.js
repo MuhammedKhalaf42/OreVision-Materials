@@ -205,7 +205,7 @@ function toast(msg) {
 let lastFocus = null;
 
 function syncScrollLock() {
-  const open = ["#cartDrawer", "#exitPopup"].some((s) => !$(s).hidden);
+  const open = !$("#cartDrawer").hidden;
   document.body.classList.toggle("no-scroll", open);
 }
 
@@ -264,13 +264,6 @@ function artSVG(p) {
 /* ---------- reference prices: ticker + table ---------- */
 const benchPrice = (b) =>
   b.range ? String(b.range) : b.price.toLocaleString(undefined, { maximumFractionDigits: 2 });
-
-function renderTicker() {
-  const items = BENCHMARKS.map((b) =>
-    `<span>${esc(b.name)}: <strong>${esc(benchPrice(b))} ${esc(b.unit)}</strong>${b.asOf ? ` <em class="as-of">${esc(b.asOf)}</em>` : ""}</span>`
-  ).join("");
-  $("#tickerTrack").innerHTML = items + items; // duplicated for seamless loop
-}
 
 const benchRowHTML = (b) =>
   `<tr>
@@ -396,7 +389,6 @@ function renderProducts() {
   if (view === "cards") {
     grid.className = "product-grid";
     grid.innerHTML = list.map(cardHTML).join("");
-    observeReveals();
   } else {
     grid.className = "spec-table-wrap";
     grid.innerHTML = tableHTML(list);
@@ -692,7 +684,7 @@ function renderPage(keepState) {
   const bench = info && info.benchmark ? BENCHMARKS.find((b) => b.name === info.benchmark) : null;
   const existing = alerts.find((a) => a.id === p.id);
   const alertDefault = existing ? existing.target : Math.max(1, Math.round(p.basePrice * 0.95));
-  document.title = `${pfull(p)} | ${baseTitle}`;
+  document.title = `${pfull(p)} | OreVision Materials`;
 
   const gradeRows = grades.map((g) => {
     const sel = g.id === p.id;
@@ -830,8 +822,8 @@ function renderPage(keepState) {
             <button type="button" class="btn-primary" data-act="${out ? "notify" : "add"}">${esc(out ? t("modal.notifyBtn") : t("page.buy"))}</button>
             <button type="button" class="btn-outline" data-act="sample">${esc(t("page.sample"))}</button>
             <div class="side-row">
-              <button type="button" class="btn-ghost" data-act="print">${esc(t("modal.print"))}</button>
-              <button type="button" class="btn-ghost" data-act="copy">🔗 ${esc(t("page.share"))}</button>
+              <button type="button" class="util-btn" data-act="print">${esc(t("modal.print"))}</button>
+              <button type="button" class="util-btn" data-act="copy">${esc(t("page.share"))}</button>
             </div>
           </div>
         </div>
@@ -981,7 +973,6 @@ function goToContact(message) {
   const msg = document.querySelector('[name="message"]');
   if (message != null) msg.value = message;
   closeDrawer();
-  closePopup();
   document.getElementById("contact").scrollIntoView({ behavior: "smooth" });
   msg.focus({ preventScroll: true });
 }
@@ -999,10 +990,11 @@ function setFormNote(key, kind) {
 }
 
 function mailtoHref(f) {
-  const subject = "Inquiry — OreVision Materials";
+  const subject = `RFQ — ${f.company || f.name} — OreVision Materials`;
   const body =
-    `Name: ${f.name}\nEmail: ${f.email}\nCompany: ${f.company || "-"}\n` +
-    `Country: ${f.country}\n\n${f.message || ""}`;
+    `Name: ${f.name}\nCompany: ${f.company || "-"}\nEmail: ${f.email}\nPhone: ${f.phone || "-"}\n` +
+    `Country: ${f.country}\nDestination port: ${f.port || "-"}\n` +
+    `Delivery term: ${f.incoterm || "-"}\nPayment terms: ${f.payment || "-"}\n\n${f.message || ""}`;
   return `mailto:${SITE.CONTACT_EMAIL}?subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(body)}`;
 }
 
@@ -1021,7 +1013,7 @@ async function submitInquiry(form) {
       const r = await fetch(SITE.FORM_ENDPOINT, {
         method: "POST",
         headers: { "Content-Type": "application/json", Accept: "application/json" },
-        body: JSON.stringify({ ...f, _subject: "Inquiry — OreVision Materials", language: lang }),
+        body: JSON.stringify({ ...f, _subject: `RFQ — ${f.company || f.name}`, language: lang }),
       });
       if (!r.ok) throw new Error("HTTP " + r.status);
       setFormNote("form.note");
@@ -1120,6 +1112,12 @@ function applyI18n() {
   });
   $("#langToggle").textContent = lang === "ar" ? "EN" : "عربي";
   $("#lastUpdated").textContent = fmtDate(LAST_UPDATED);
+  $("#lastUpdatedTop").textContent = fmtDate(LAST_UPDATED);
+  const inc = $("#formIncoterm");
+  const keep = inc.value;
+  inc.innerHTML = SITE.INCOTERMS.map((x) =>
+    `<option value="${esc(x)}">${esc(lang === "ar" ? AR_INCOTERMS[x] || x : x)}</option>`).join("");
+  if (keep) inc.value = keep;
   const sel = $("#categoryFilter");
   [...sel.options].forEach((o) => { if (o.value) o.textContent = pcat(o.value); });
 }
@@ -1136,54 +1134,8 @@ function setLang(next) {
   lang = next === "ar" ? "ar" : "en";
   store.setStr("ov-lang", lang);
   applyI18n();
-  renderTicker();
   renderMarket();
   rerenderAll();
-}
-
-/* ---------- exit popup ---------- */
-function closePopup() {
-  hideOverlay($("#exitPopup"), $("#popupBackdrop"));
-}
-
-function setupExitPopup() {
-  const show = () => {
-    if (session.get("ov-popup")) return;
-    // don't interrupt a buyer who is in the middle of something
-    if (!$("#cartDrawer").hidden || pageRoute) return;
-    session.set("ov-popup", "1");
-    showOverlay($("#exitPopup"), $("#popupBackdrop"), $("#popupClose"));
-  };
-  document.addEventListener("mouseout", (e) => {
-    if (!e.relatedTarget && e.clientY <= 0) show();
-  });
-  $("#popupClose").addEventListener("click", closePopup);
-  $("#popupBackdrop").addEventListener("click", closePopup);
-  $("#popupCsv").addEventListener("click", () => { downloadCsv(); closePopup(); });
-  $("#popupSubscribe").addEventListener("click", () => {
-    const field = $("#popupEmail");
-    const email = field.value.trim();
-    if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) { field.focus(); field.classList.add("invalid"); return; }
-    field.classList.remove("invalid");
-    document.querySelector('[name="email"]').value = email;
-    goToContact(t("popup.subscribeMsg"));
-  });
-}
-
-/* ---------- scroll reveal ---------- */
-const revealObserver = typeof IntersectionObserver === "function"
-  ? new IntersectionObserver((entries) => {
-      entries.forEach((e) => {
-        if (e.isIntersecting) { e.target.classList.add("in"); revealObserver.unobserve(e.target); }
-      });
-    }, { threshold: 0.12 })
-  : null;
-
-function observeReveals() {
-  if (!revealObserver) return; // without the observer, content simply stays visible
-  document.querySelectorAll(".card, .feature, .docs-box").forEach((el) => {
-    if (!el.classList.contains("in")) { el.classList.add("reveal"); revealObserver.observe(el); }
-  });
 }
 
 /* ---------- init ---------- */
@@ -1209,11 +1161,15 @@ function init() {
   $("#statValidity").textContent = SITE.QUOTE_VALID_DAYS;
 
   // theme
-  if (store.str("ov-theme") === "light") document.documentElement.dataset.theme = "light";
+  const setTheme = (dark) => {
+    document.documentElement.dataset.theme = dark ? "dark" : "light";
+    $("#themeToggle").textContent = dark ? "Light" : "Dark";
+  };
+  setTheme(store.str("ov-theme") === "dark");
   $("#themeToggle").addEventListener("click", () => {
-    const next = document.documentElement.dataset.theme === "light" ? "" : "light";
-    document.documentElement.dataset.theme = next;
-    store.setStr("ov-theme", next);
+    const dark = document.documentElement.dataset.theme !== "dark";
+    setTheme(dark);
+    store.setStr("ov-theme", dark ? "dark" : "light");
   });
 
   // language
@@ -1297,8 +1253,7 @@ function init() {
 
   document.addEventListener("keydown", (e) => {
     if (e.key !== "Escape") return;
-    if (!$("#exitPopup").hidden) closePopup();
-    else if (!$("#cartDrawer").hidden) closeDrawer();
+    if (!$("#cartDrawer").hidden) closeDrawer();
     else setNav(false);
   });
 
@@ -1341,6 +1296,11 @@ function init() {
   // CSV price list
   $("#downloadCsv").addEventListener("click", downloadCsv);
 
+  if (SITE.CONTACT_EMAIL) {
+    $("#footerEmail").textContent = SITE.CONTACT_EMAIL;
+    $("#footerEmail").href = "mailto:" + SITE.CONTACT_EMAIL;
+  }
+
   // WhatsApp button (shown only when a number is configured in data.js)
   const wa = String(SITE.WHATSAPP_NUMBER || "").replace(/\D/g, ""); // tolerate "+20 10…" formatting
   if (wa) {
@@ -1356,11 +1316,9 @@ function init() {
   }, { passive: true });
   backTop.addEventListener("click", () => window.scrollTo({ top: 0, behavior: "smooth" }));
 
-  setupExitPopup();
   injectJsonLd();
   applyI18n();
   saveCart();
-  renderTicker();
   renderMarket();
   renderCountryTabs();
   renderProducts();

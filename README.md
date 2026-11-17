@@ -8,10 +8,24 @@ A static marketplace website for AI-sorted mining materials — the selling coun
 - **Same material, several grades** — e.g. iron oxide as lump, 325-mesh powder and 600-mesh micronized, each with its own purity, price and stock
 - **Country tabs** — Egypt live; Sudan shown as "Coming soon" with a register-interest button (edit `COUNTRIES` in `data.js` to open it)
 - **A page for every material** (`#/m/<material>/<grade>`) — grade comparison, typical chemical analysis, real price history, related market price, map of the deposit region, geology, properties and HS code, applications, mine-to-port steps, packaging and delivery terms, FAQ, order calculator, sample request, printable datasheet, shareable link
-- **Market reference prices** — ticker + table, each with its date and source
-- **Quote cart**, price alerts, USD ⇄ EGP, English ⇄ Arabic (right-to-left), dark/light theme, phone-ready
+- **Market reference data** — table with the date and source of every figure
+- **RFQ list and RFQ form** — company, destination port, delivery term (Incoterms) and payment terms (L/C, T/T, CAD)
+- Price alerts, USD ⇄ EGP, English ⇄ Arabic (right-to-left), light/dark theme, phone-ready
 
 Material page text (history, geology, map location, HS codes) lives in `materials.js`.
+
+## Operations console (`ops.html`)
+The internal back office — not linked from the public site and hidden from search engines.
+Open it at `…/OreVision-Materials/ops.html`.
+- **Dashboard** — open RFQs and pipeline value, won contracts and win rate, released stock, stock pending lab, active shipments, and action items (stock shortfalls against contracts, missing shipping documents, low stock)
+- **RFQs & Orders** — every inquiry with company, grade, quantity, delivery term, target and quoted price; statuses New → Quoted → Negotiation → Won (contract) / Lost
+- **Inventory** — lot register (tonnes, location, assay, lab status). Only *Released* lots count as sellable; won contracts are deducted until their shipment sails
+- **Shipments** — contract, route, ETD/ETA, B/L number, and a six-document checklist
+- **Customers** — built automatically from the RFQs
+- **Website** — downloads a new `data.js` with stock taken from the lot register (prices are edited in `admin.html`)
+- CSV export per table, JSON backup / restore, and clearly marked sample data for trying it out
+
+**Important:** the console saves records in the browser on the computer where it is used. Export a backup regularly. To let several staff work on the same live records from different computers, the next step is a hosted database (for example Supabase or Firebase); the logic in `ops.js` is written to make that switch straightforward.
 
 ## Activate contact features (2-minute setup)
 Easiest: open **`admin.html`**, fill in the *Contact settings* boxes, download the new `data.js`.
@@ -26,7 +40,7 @@ Until one of the first two is set, the form tells visitors honestly that nothing
 ```bash
 node tests/run-tests.js
 ```
-34 checks covering data integrity (every product has a photo, country, form, specs and Arabic translation; every material has a page entry in both languages; English and Arabic keys match), quantity and discount rules, price-history rules, and recovery from corrupt saved data. Run it after editing `data.js` or `i18n.js`.
+42 checks covering data integrity (every product has a photo, country, form, specs and Arabic translation; every material has a page entry in both languages; English and Arabic keys match), quantity and discount rules, price-history rules, recovery from corrupt saved data, and the operations logic (stock commitments, KPIs, publishing, backups). Run it after editing `data.js` or `i18n.js`.
 
 ## How the site protects itself
 - A typo in `data.js` (text where a number should be, a broken price history, a duplicate id) is repaired or skipped at startup instead of breaking the page.
