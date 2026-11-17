@@ -9,7 +9,8 @@ A static marketplace website for AI-sorted mining materials — the selling coun
 - **Country tabs** — Egypt live; Sudan shown as "Coming soon" with a register-interest button (edit `COUNTRIES` in `data.js` to open it)
 - **A page for every material** (`#/m/<material>/<grade>`) — grade comparison, typical chemical analysis, real price history, related market price, map of the deposit region, geology, properties and HS code, applications, mine-to-port steps, packaging and delivery terms, FAQ, order calculator, sample request, printable datasheet, shareable link
 - **Market reference data** — table with the date and source of every figure
-- **RFQ list and RFQ form** — company, destination port, delivery term (Incoterms) and payment terms (L/C, T/T, CAD)
+- **RFQ line items** — buyers tick *Include* on any grade and set the tonnage; a summary bar keeps the running total, and the lines (with volume discounts) appear at the top of the RFQ form and are sent with it
+- **RFQ form** — company, destination port, delivery term (Incoterms) and payment terms (L/C, T/T, CAD)
 - Price alerts, USD ⇄ EGP, English ⇄ Arabic (right-to-left), light/dark theme, phone-ready
 
 Material page text (history, geology, map location, HS codes) lives in `materials.js`.

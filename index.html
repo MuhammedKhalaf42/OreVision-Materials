@@ -53,7 +53,7 @@
     </nav>
     <div class="header-actions">
       <button class="btn-rfq" id="cartBtn" type="button">
-        <span data-i18n="cart.btn">RFQ List</span> <span class="cart-count" id="cartCount">0</span>
+        <span data-i18n="cart.btn">RFQ</span> <span class="cart-count" id="cartCount">0</span>
       </button>
       <button class="util-btn nav-toggle" id="navToggle" type="button" aria-label="Menu" aria-expanded="false" aria-controls="mainNav">☰</button>
     </div>
@@ -174,6 +174,7 @@
     <p data-i18n="contact.sub">Complete the form, or add grades from the price list first.</p>
   </div>
   <form class="contact-form" id="contactForm">
+    <div class="rfq-lines" id="rfqLines"></div>
     <div class="form-row">
       <label><span data-i18n="form.name">Full name *</span><input required name="name" autocomplete="name"></label>
       <label><span data-i18n="form.company">Company *</span><input required name="company" autocomplete="organization"></label>
@@ -237,20 +238,13 @@
   </div>
 </footer>
 
-<!-- ======= RFQ list drawer ======= -->
-<div class="drawer-backdrop" id="drawerBackdrop" hidden></div>
-<aside class="drawer" id="cartDrawer" aria-label="RFQ list" hidden>
-  <div class="drawer-head">
-    <h3 data-i18n="drawer.title">RFQ List</h3>
-    <button class="util-btn" id="closeDrawer" type="button" aria-label="Close">✕</button>
+<!-- ======= RFQ summary bar (shown while grades are included) ======= -->
+<div class="rfq-bar" id="rfqBar" hidden>
+  <div class="rfq-bar-inner">
+    <p class="rfq-bar-text"></p>
+    <button class="btn-primary btn-light" id="rfqReview" type="button" data-i18n="rfq.review">Review &amp; submit RFQ</button>
   </div>
-  <div class="drawer-body" id="cartItems"></div>
-  <div class="drawer-foot">
-    <div class="cart-total"><span data-i18n="drawer.total">Indicative value</span><strong id="cartTotal">$0</strong></div>
-    <button class="btn-primary" id="requestQuote" type="button" data-i18n="drawer.request">Continue to RFQ form</button>
-    <p class="form-note" id="quoteNote" data-i18n="drawer.note" hidden></p>
-  </div>
-</aside>
+</div>
 
 <a class="whatsapp-fab" id="whatsappFab" target="_blank" rel="noopener" hidden aria-label="WhatsApp">
   <svg viewBox="0 0 32 32" width="24" height="24" fill="currentColor" aria-hidden="true"><path d="M16 3C9.4 3 4 8.4 4 15c0 2.1.6 4.1 1.6 5.9L4 29l8.3-1.6c1.7.9 3.6 1.4 5.7 1.4 6.6 0 12-5.4 12-12S22.6 3 16 3zm0 21.8c-1.8 0-3.5-.5-5-1.3l-.4-.2-4.9 1 1-4.8-.2-.4c-1-1.6-1.5-3.4-1.5-5.1 0-5.4 4.4-9.8 9.8-9.8s9.8 4.4 9.8 9.8-4.3 9.8-9.6 9.8z"/></svg>

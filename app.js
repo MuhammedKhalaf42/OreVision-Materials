@@ -201,31 +201,6 @@ function toast(msg) {
   toastTimer = setTimeout(() => { el.hidden = true; }, 3800);
 }
 
-/* ---------- overlays: scroll lock + focus restore ---------- */
-let lastFocus = null;
-
-function syncScrollLock() {
-  const open = !$("#cartDrawer").hidden;
-  document.body.classList.toggle("no-scroll", open);
-}
-
-function showOverlay(panel, backdrop, focusEl) {
-  if (panel.hidden) lastFocus = document.activeElement;
-  panel.hidden = false;
-  backdrop.hidden = false;
-  syncScrollLock();
-  if (focusEl) focusEl.focus({ preventScroll: true });
-}
-
-function hideOverlay(panel, backdrop) {
-  if (panel.hidden) return;
-  panel.hidden = true;
-  backdrop.hidden = true;
-  syncScrollLock();
-  if (lastFocus && document.contains(lastFocus)) lastFocus.focus({ preventScroll: true });
-  lastFocus = null;
-}
-
 /* ---------- procedural card art (fallback when a photo is missing) ---------- */
 const CAT_HUE = {
   "Industrial Minerals": 36,
@@ -397,10 +372,10 @@ function renderProducts() {
 
 function qtyControl(p) {
   const id = esc(p.id);
-  return isOut(p)
-    ? `<button class="btn-add btn-notify" data-id="${id}">${t("card.notify")}</button>`
-    : `<input class="qty" type="number" min="${p.moq}" max="${p.stock}" step="1" value="${p.moq}" id="qty-${id}" aria-label="${esc(t("calc.qty"))} — ${esc(pfull(p))}">
-       <button class="btn-add" data-id="${id}">${t("card.add")}</button>`;
+  if (isOut(p)) return `<button type="button" class="btn-add btn-notify" data-id="${id}">${t("card.notify")}</button>`;
+  const line = cart.find((c) => c.id === p.id);
+  return `<input class="qty" type="number" min="${p.moq}" max="${p.stock}" step="1" value="${line ? line.qty : p.moq}" id="qty-${id}" data-line-qty="${id}" aria-label="${esc(t("calc.qty"))} — ${esc(pfull(p))}">
+     <label class="rfq-check${line ? " on" : ""}"><input type="checkbox" data-include="${id}"${line ? " checked" : ""}><span>${esc(line ? t("rfq.included") : t("card.add"))}</span></label>`;
 }
 
 function tableHTML(list) {
@@ -489,14 +464,12 @@ function setCartQty(p, rawQty) {
   else cart.push({ id: p.id, qty });
   saveCart();
   if (capped) toast(fill("toast.maxStock", { n: p.stock.toLocaleString(), unit: p.unit }));
+  return qty;
 }
 
-function addToCart(id, rawQty) {
-  const p = byId(id);
-  if (!p || isOut(p)) return;
-  const input = document.getElementById("qty-" + id);
-  setCartQty(p, rawQty ?? (input ? input.value : p.moq));
-  openDrawer();
+function removeLine(id) {
+  cart = cart.filter((c) => c.id !== id);
+  saveCart();
 }
 
 function lineTotal(p, qty) {
@@ -504,45 +477,90 @@ function lineTotal(p, qty) {
   return { pct, total: p.basePrice * qty * (1 - pct / 100) };
 }
 
-function renderCart() {
-  const body = $("#cartItems");
-  if (!cart.length) {
-    body.innerHTML = `<p class="cart-empty">${t("drawer.empty")}</p>`;
-    $("#cartTotal").textContent = fmtPrice(0);
-    $("#requestQuote").disabled = true;
-    return;
-  }
-  $("#requestQuote").disabled = false;
-  let total = 0;
-  body.innerHTML = cart.map((c) => {
-    const p = byId(c.id);
-    if (!p) return "";
-    const { pct, total: line } = lineTotal(p, c.qty);
-    total += line;
-    const disc = pct ? ` <span class="disc">−${pct}% ${t("drawer.discount")}</span>` : "";
-    const id = esc(p.id);
-    return `
-    <div class="cart-item">
-      <div>
-        <h4><a href="${pageHref(p)}" class="mat-link">${esc(pname(p))}</a></h4>
-        <p class="meta">${esc(pform(p))} · ${val(p.grade)}</p>
-        <p class="meta">
-          <input class="qty cart-qty" type="number" min="${p.moq}" max="${p.stock}" step="1" value="${c.qty}" data-qty="${id}" aria-label="${esc(t("calc.qty"))}">
-          ${esc(p.unit)} × ${fmtPrice(p.basePrice)}${disc} = <strong>${fmtPrice(line)}</strong>
-        </p>
-      </div>
-      <button data-remove="${id}" aria-label="${esc(t("drawer.remove"))}" title="${esc(t("drawer.remove"))}">✕</button>
-    </div>`;
-  }).join("");
-  $("#cartTotal").textContent = fmtPrice(total);
+function rfqTotals() {
+  let tonnes = 0, value = 0;
+  cart.forEach((c) => { const p = byId(c.id); if (p) { tonnes += c.qty; value += lineTotal(p, c.qty).total; } });
+  return { n: cart.length, tonnes, value };
 }
 
-function openDrawer() {
-  renderCart();
-  showOverlay($("#cartDrawer"), $("#drawerBackdrop"), $("#closeDrawer"));
+/* Plain-text RFQ lines sent with the form (always in English for the sales desk). */
+function rfqLinesText() {
+  return cart.map((c, i) => {
+    const p = byId(c.id);
+    return p ? `${i + 1}. ${pfullEn(p)} | ${p.grade} | ${c.qty.toLocaleString("en-US")} ${p.unit} | indicative FOB $${p.basePrice}/${p.unit}` : "";
+  }).filter(Boolean).join("\n");
 }
-function closeDrawer() {
-  hideOverlay($("#cartDrawer"), $("#drawerBackdrop"));
+
+/* Keeps a catalog row / card in step with the RFQ without redrawing the table. */
+function syncControls(id) {
+  const line = cart.find((c) => c.id === id);
+  document.querySelectorAll(`[data-include="${CSS.escape(id)}"]`).forEach((box) => {
+    box.checked = !!line;
+    box.parentElement.classList.toggle("on", !!line);
+    box.nextElementSibling.textContent = line ? t("rfq.included") : t("card.add");
+  });
+  if (line) document.querySelectorAll(`[data-line-qty="${CSS.escape(id)}"]`).forEach((q) => { q.value = line.qty; });
+}
+
+function toggleLine(id, include, rawQty) {
+  const p = byId(id);
+  if (!p || isOut(p)) return;
+  if (include) {
+    setCartQty(p, rawQty);
+    toast(fill("rfq.added", { name: pfull(p) }));
+  } else {
+    removeLine(id);
+  }
+  syncControls(id);
+  renderCart();
+}
+
+/* RFQ summary bar + the line-item table at the top of the RFQ form. */
+function renderCart() {
+  const { n, tonnes, value } = rfqTotals();
+  $("#cartCount").textContent = n;
+  const bar = $("#rfqBar");
+  bar.hidden = !n;
+  document.body.classList.toggle("has-rfq", !!n);
+  if (n) {
+    bar.querySelector(".rfq-bar-text").innerHTML =
+      `<strong>${esc(t("rfq.barTitle"))}</strong> ${esc(fill("rfq.bar", { n, t: tonnes.toLocaleString() }))} · ${esc(t("rfq.indicative"))} <strong>${fmtPrice(value)}</strong>`;
+  }
+  const box = $("#rfqLines");
+  if (!n) {
+    box.innerHTML = `<div class="rfq-head"><h3>${esc(t("rfq.linesTitle"))}</h3></div><p class="rfq-empty">${esc(t("rfq.empty"))}</p>`;
+    return;
+  }
+  const rows = cart.map((c, i) => {
+    const p = byId(c.id);
+    if (!p) return "";
+    const { pct, total } = lineTotal(p, c.qty);
+    const id = esc(p.id);
+    return `<tr>
+      <td class="num">${i + 1}</td>
+      <td><a class="mat-link" href="${pageHref(p)}">${esc(pname(p))}</a><span class="c-sub">${esc(pform(p))}</span></td>
+      <td class="c-purity">${val(p.grade)}</td>
+      <td class="num"><input class="qty" type="number" min="${p.moq}" max="${p.stock}" step="1" value="${c.qty}" data-line-qty="${id}" aria-label="${esc(t("calc.qty"))} — ${esc(pfull(p))}"><span class="c-sub">${esc(t("card.moq"))} ${p.moq.toLocaleString()}</span></td>
+      <td class="num">${fmtPrice(p.basePrice)}</td>
+      <td class="num">${pct ? `−${pct}%` : "—"}</td>
+      <td class="num"><strong>${fmtPrice(total)}</strong></td>
+      <td class="num"><button type="button" class="line-remove" data-remove="${id}" aria-label="${esc(t("drawer.remove"))} — ${esc(pfull(p))}" title="${esc(t("drawer.remove"))}">✕</button></td>
+    </tr>`;
+  }).join("");
+  box.innerHTML = `<div class="rfq-head"><h3>${esc(t("rfq.linesTitle"))}</h3><button type="button" class="util-btn" data-clear-rfq>${esc(t("rfq.clear"))}</button></div>
+    <div class="spec-table-wrap"><table class="spec-table rfq-table">
+      <thead><tr><th class="num">#</th><th>${esc(t("rfq.grade"))}</th><th>${esc(t("col.purity"))}</th><th class="num">${esc(t("rfq.qty"))}</th>
+        <th class="num">${esc(fill("rfq.unit", { cur: currency }))}</th><th class="num">${esc(t("calc.discount"))}</th><th class="num">${esc(t("rfq.value"))}</th><th></th></tr></thead>
+      <tbody>${rows}</tbody>
+      <tfoot><tr><td></td><td colspan="2">${esc(t("rfq.total"))}</td><td class="num"><strong>${tonnes.toLocaleString()} t</strong></td><td></td><td></td><td class="num"><strong>${fmtPrice(value)}</strong></td><td></td></tr></tfoot>
+    </table></div>
+    <p class="note">${esc(t("rfq.note"))}</p>`;
+}
+
+function goToRfq() {
+  document.getElementById("contact").scrollIntoView({ behavior: "smooth" });
+  const first = document.querySelector('#contactForm [name="name"]');
+  if (first) first.focus({ preventScroll: true });
 }
 
 /* ---------- price history chart: real recorded prices only, spaced by date ---------- */
@@ -819,7 +837,7 @@ function renderPage(keepState) {
           <p class="side-stock">${stockBadge(p)} <span class="muted">${out ? "" : `${p.stock.toLocaleString()} ${esc(p.unit)} · `}${esc(fill("modal.asOf", { date: fmtDate(LAST_UPDATED) }))}</span></p>
           ${out ? "" : calcHTML(p, state)}
           <div class="side-actions">
-            <button type="button" class="btn-primary" data-act="${out ? "notify" : "add"}">${esc(out ? t("modal.notifyBtn") : t("page.buy"))}</button>
+            <button type="button" class="btn-primary" data-act="${out ? "notify" : "add"}">${esc(out ? t("modal.notifyBtn") : cart.some((c) => c.id === p.id) ? t("rfq.update") : t("page.buy"))}</button>
             <button type="button" class="btn-outline" data-act="sample">${esc(t("page.sample"))}</button>
             <div class="side-row">
               <button type="button" class="util-btn" data-act="print">${esc(t("modal.print"))}</button>
@@ -857,7 +875,7 @@ function renderPage(keepState) {
 function pageAction(act) {
   const p = byId($("#materialPage").dataset.pid);
   if (!p) return;
-  if (act === "add") addToCart(p.id, $("#calcQty") ? $("#calcQty").value : p.moq); // honor the calculator quantity
+  if (act === "add") { toggleLine(p.id, true, $("#calcQty") ? $("#calcQty").value : p.moq); renderPage(true); } // honor the calculator quantity
   else if (act === "notify") notifyMe(p);
   else if (act === "sample") goToContact(fill("page.sampleMsg", { name: pname(p), form: pform(p) }));
   else if (act === "print") printDatasheet(p);
@@ -972,7 +990,6 @@ function checkAlerts() {
 function goToContact(message) {
   const msg = document.querySelector('[name="message"]');
   if (message != null) msg.value = message;
-  closeDrawer();
   document.getElementById("contact").scrollIntoView({ behavior: "smooth" });
   msg.focus({ preventScroll: true });
 }
@@ -994,7 +1011,8 @@ function mailtoHref(f) {
   const body =
     `Name: ${f.name}\nCompany: ${f.company || "-"}\nEmail: ${f.email}\nPhone: ${f.phone || "-"}\n` +
     `Country: ${f.country}\nDestination port: ${f.port || "-"}\n` +
-    `Delivery term: ${f.incoterm || "-"}\nPayment terms: ${f.payment || "-"}\n\n${f.message || ""}`;
+    `Delivery term: ${f.incoterm || "-"}\nPayment terms: ${f.payment || "-"}\n\n` +
+    (f.rfq_lines ? `RFQ lines:\n${f.rfq_lines}\n\n` : "") + (f.message || "");
   return `mailto:${SITE.CONTACT_EMAIL}?subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(body)}`;
 }
 
@@ -1004,6 +1022,7 @@ async function submitInquiry(form) {
   const f = Object.fromEntries(new FormData(form));
   if (f._gotcha) return; // honeypot filled → bot
   delete f._gotcha;
+  if (cart.length) f.rfq_lines = rfqLinesText();
   const btn = form.querySelector('[type="submit"]');
 
   if (SITE.FORM_ENDPOINT) {
@@ -1018,7 +1037,10 @@ async function submitInquiry(form) {
       if (!r.ok) throw new Error("HTTP " + r.status);
       setFormNote("form.note");
       form.reset();
-      $("#quoteNote").hidden = true;
+      cart = [];
+      saveCart();
+      renderCart();
+      renderProducts();
     } catch (_) {
       if (SITE.CONTACT_EMAIL) {
         location.href = mailtoHref(f);
@@ -1239,9 +1261,26 @@ function init() {
       if (p) notifyMe(p);
       return;
     }
-    const btn = e.target.closest(".btn-add");
-    if (!btn || btn.disabled) return;
-    addToCart(btn.dataset.id);
+  });
+  // Include / quantity on catalog rows and cards, quantity on RFQ lines
+  document.addEventListener("change", (e) => {
+    const inc = e.target.closest("[data-include]");
+    if (inc) {
+      const q = document.getElementById("qty-" + inc.dataset.include);
+      toggleLine(inc.dataset.include, inc.checked, q ? q.value : undefined);
+      return;
+    }
+    const q = e.target.closest("[data-line-qty]");
+    if (!q) return;
+    const p = byId(q.dataset.lineQty);
+    if (!p) return;
+    if (cart.some((c) => c.id === p.id)) {
+      setCartQty(p, q.value);
+      syncControls(p.id);
+      renderCart();
+    } else {
+      q.value = clampQty(p, q.value).qty; // not in the RFQ yet: just tidy the field
+    }
   });
 
   // material page
@@ -1253,39 +1292,26 @@ function init() {
 
   document.addEventListener("keydown", (e) => {
     if (e.key !== "Escape") return;
-    if (!$("#cartDrawer").hidden) closeDrawer();
-    else setNav(false);
+    setNav(false);
   });
 
-  // cart
-  $("#cartBtn").addEventListener("click", openDrawer);
-  $("#closeDrawer").addEventListener("click", closeDrawer);
-  $("#drawerBackdrop").addEventListener("click", closeDrawer);
-  $("#cartItems").addEventListener("click", (e) => {
-    if (e.target.closest(".mat-link")) { closeDrawer(); return; }
+  // RFQ lines
+  $("#cartBtn").addEventListener("click", goToRfq);
+  $("#rfqReview").addEventListener("click", goToRfq);
+  $("#rfqLines").addEventListener("click", (e) => {
+    if (e.target.closest("[data-clear-rfq]")) {
+      const ids = cart.map((c) => c.id);
+      cart = [];
+      saveCart();
+      ids.forEach(syncControls);
+      renderCart();
+      return;
+    }
     const id = e.target.closest("[data-remove]")?.dataset.remove;
     if (!id) return;
-    cart = cart.filter((c) => c.id !== id);
-    saveCart();
+    removeLine(id);
+    syncControls(id);
     renderCart();
-  });
-  $("#cartItems").addEventListener("change", (e) => {
-    const input = e.target.closest("[data-qty]");
-    if (!input) return;
-    const p = byId(input.dataset.qty);
-    if (!p) return;
-    setCartQty(p, input.value);
-    renderCart();
-  });
-
-  $("#requestQuote").addEventListener("click", () => {
-    if (!cart.length) return;
-    const lines = cart.map((c) => {
-      const p = byId(c.id);
-      return p ? `• ${pfullEn(p)} (${p.grade}): ${c.qty.toLocaleString()} ${p.unit}` : "";
-    }).filter(Boolean).join("\n");
-    $("#quoteNote").hidden = false;
-    goToContact(t("quote.header") + "\n" + lines + "\n\n" + t("quote.dest"));
   });
 
   $("#contactForm").addEventListener("submit", (e) => {
