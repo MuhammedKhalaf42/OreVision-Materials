@@ -387,7 +387,7 @@ function tableHTML(list) {
   const rows = list.map((p) => {
     const href = pageHref(p);
     return `<tr class="${isOut(p) ? "row-out" : ""}">
-      <td class="c-mat">${swatchHTML(p.material)}<a href="${href}" class="mat-link">${esc(pname(p))}</a><span class="c-cat">${esc(pcat(p.category))}</span></td>
+      <td class="c-mat"><a href="${href}" class="mat-link">${esc(pname(p))}</a><span class="c-cat">${esc(pcat(p.category))}</span></td>
       <td>${esc(pform(p))}</td>
       <td class="c-purity">${val(p.grade)}</td>
       <td><span class="c-flag">${flagName(p)}</span>${regionOnly(p) ? `<span class="c-sub">${esc(regionOnly(p))}</span>` : ""}</td>
@@ -422,7 +422,7 @@ function cardHTML(p) {
       <span class="c-flag">${flagName(p)}</span>
       <span>${stockBadge(p)}${maxPct ? ` <span class="badge tier" title="${esc(t("card.volume"))} ${maxPct}%">-${maxPct}%</span>` : ""}</span>
     </div>
-    <h3>${swatchHTML(p.material)}<a href="${href}" class="mat-link">${esc(pname(p))}</a></h3>
+    <h3><a href="${href}" class="mat-link">${esc(pname(p))}</a></h3>
     <p class="card-form">${esc(pform(p))}</p>
     <dl class="card-kv">
       <div><dt>${t("card.purity")}</dt><dd>${val(p.grade)}</dd></div>
@@ -667,143 +667,17 @@ function pageSection(id, title, body) {
   return `<section class="mp-sec" id="mp-${id}"><h2>${esc(title)}</h2>${body}</section>`;
 }
 
-/* ---------- survey map of Egypt (schematic, drawn from real coordinates) ---------- */
-const MAPK = 40, LNG0 = 24.6, LAT0 = 32.3, MAP_W = 500, MAP_H = 425;
-const mp = (lng, lat) => [+((lng - LNG0) * MAPK).toFixed(1), +((LAT0 - lat) * MAPK).toFixed(1)];
-const pathOf = (pts, close) => "M" + pts.map(([a, b]) => mp(a, b).join(",")).join("L") + (close ? "Z" : "");
-// [lng, lat] outline: Mediterranean coast, Sinai, Gulf of Suez, Red Sea coast, 22°N, 25°E
-const EGYPT = [[25.15, 31.58], [27.24, 31.35], [28.95, 30.83], [29.9, 31.2], [30.4, 31.45], [31.0, 31.6], [31.8, 31.5],
-  [32.3, 31.27], [33.2, 31.1], [33.8, 31.13], [34.22, 31.3], [34.9, 29.5], [34.6, 28.6], [34.25, 27.73], [33.75, 28.05],
-  [33.6, 28.24], [33.1, 29.05], [32.7, 29.6], [32.55, 29.97], [32.35, 29.6], [32.65, 29.1], [33.08, 28.36], [33.8, 27.25],
-  [33.94, 26.75], [34.28, 26.1], [34.9, 25.07], [35.48, 23.95], [35.8, 23.9], [35.6, 23.2], [36.6, 22.2], [36.88, 22.0],
-  [25.0, 22.0], [25.0, 29.5]];
-const NILE = [[31.4, 22.0], [32.3, 22.8], [32.9, 24.09], [32.9, 24.97], [32.6, 25.7], [32.73, 26.15], [31.9, 26.4],
-  [31.2, 27.18], [30.75, 28.1], [31.1, 29.07], [31.24, 30.04]];
-const NILE_W = [[31.24, 30.04], [30.9, 30.6], [30.4, 31.45]];
-const NILE_E = [[31.24, 30.04], [31.4, 30.7], [31.8, 31.5]];
-// water bodies drawn over neighbouring land (Libya, Sudan, Arabia stay as plain paper)
-const MED_SEA = [[24.6, 32.3], [24.6, 31.7], ...EGYPT.slice(0, 11), [34.55, 31.7], [34.9, 32.3]];
-const RED_SEA = [[32.55, 29.97], [32.35, 29.6], [32.65, 29.1], [33.08, 28.36], [33.8, 27.25], [33.94, 26.75], [34.28, 26.1],
-  [34.9, 25.07], [35.48, 23.95], [35.8, 23.9], [35.6, 23.2], [36.6, 22.2], [36.88, 22.0], [37.2, 21.8], [37.2, 24.4],
-  [36.5, 25.6], [36.45, 26.2], [35.7, 27.35], [35.25, 28.05], [34.95, 28.6], [35.0, 29.53], [34.9, 29.5], [34.6, 28.6],
-  [34.25, 27.73], [33.75, 28.05], [33.6, 28.24], [33.1, 29.05], [32.7, 29.6]];
-const PORTS = { Alexandria: [29.9, 31.2], Adabiya: [32.47, 29.87], Safaga: [33.94, 26.75] };
-const portOf = (info) => Object.keys(PORTS).find((k) => ((info && info.en && info.en.port) || "").includes(k)) || "";
-const swatchOf = (m) => { const x = matInfo(m); return x && /^#[0-9a-f]{3,8}$/i.test(x.swatch || "") ? x.swatch : "#8a8172"; };
-const swatchHTML = (m) => `<span class="swatch" style="--sw:${swatchOf(m)}" aria-hidden="true"></span>`;
-
-// irregular "contour" rings around a deposit, seeded so they never change between renders
-function contourRings(seed, x, y, radii) {
-  const rnd = seededRand(seed);
-  return radii.map((r) => {
-    const pts = [];
-    for (let a = 0; a < 16; a++) {
-      const ang = (a / 16) * Math.PI * 2, rr = r * (0.82 + rnd() * 0.36);
-      pts.push(`${(x + Math.cos(ang) * rr * 1.25).toFixed(1)},${(y + Math.sin(ang) * rr).toFixed(1)}`);
-    }
-    return `<polygon class="contour" points="${pts.join(" ")}"/>`;
-  }).join("");
-}
-
-// numbered tags pushed apart so close deposits (Sinai, Gulf of Suez) stay readable
-function placeTags(anchors) {
-  const tags = anchors.map((a) => ({ x: a.x + 16, y: a.y - 16 }));
-  for (let it = 0; it < 160; it++) {
-    for (let i = 0; i < tags.length; i++) {
-      for (let j = i + 1; j < tags.length; j++) {
-        const dx = tags[j].x - tags[i].x, dy = tags[j].y - tags[i].y, d = Math.hypot(dx, dy) || 0.01;
-        if (d < 21) { const f = (21 - d) / 2 / d; tags[i].x -= dx * f; tags[i].y -= dy * f; tags[j].x += dx * f; tags[j].y += dy * f; }
-      }
-      anchors.forEach((a) => {
-        const dx = tags[i].x - a.x, dy = tags[i].y - a.y, d = Math.hypot(dx, dy) || 0.01;
-        if (d < 13) { tags[i].x += (dx / d) * (13 - d); tags[i].y += (dy / d) * (13 - d); }
-      });
-      tags[i].x += (anchors[i].x + 16 - tags[i].x) * 0.04;
-      tags[i].y += (anchors[i].y - 16 - tags[i].y) * 0.04;
-      tags[i].x = Math.min(MAP_W - 12, Math.max(12, tags[i].x));
-      tags[i].y = Math.min(MAP_H - 12, Math.max(12, tags[i].y));
-    }
-  }
-  return tags;
-}
-
-function baseMapSVG(inner, label) {
-  const [mx, my] = mp(27.4, 31.95), [rx, ry] = mp(35.25, 25.6), [nx, ny] = mp(31.55, 26.85);
-  return `<svg class="egypt-map" viewBox="0 0 ${MAP_W} ${MAP_H}" role="img" aria-label="${esc(label)}">
-    <defs><pattern id="hatch" width="6" height="6" patternUnits="userSpaceOnUse" patternTransform="rotate(45)"><line x1="0" y1="0" x2="0" y2="6" class="hatch"/></pattern></defs>
-    <rect class="abroad" x="0" y="0" width="${MAP_W}" height="${MAP_H}"/>
-    <path class="sea" d="${pathOf(MED_SEA, true)}"/><path class="sea" d="${pathOf(RED_SEA, true)}"/>
-    <path class="land" d="${pathOf(EGYPT, true)}"/>
-    <path class="land-hatch" d="${pathOf(EGYPT, true)}"/>
-    <path class="nile" d="${pathOf(NILE)}"/><path class="nile" d="${pathOf(NILE_W)}"/><path class="nile" d="${pathOf(NILE_E)}"/>
-    <text class="sea-label" x="${mx}" y="${my}">${esc(t("survey.sea1"))}</text>
-    <text class="sea-label" x="${rx}" y="${ry}" transform="rotate(58 ${rx} ${ry})">${esc(t("survey.sea2"))}</text>
-    <text class="river-label" x="${nx}" y="${ny}" transform="rotate(-62 ${nx} ${ny})">${esc(t("survey.nile"))}</text>
-    <g class="graticule">${[24, 26, 28, 30].map((lat) => { const y = mp(0, lat)[1]; return `<line x1="0" x2="${MAP_W}" y1="${y}" y2="${y}"/><text x="4" y="${y - 3}">${lat}°N</text>`; }).join("")}
-      ${[26, 28, 30, 32, 34, 36].map((lng) => { const x = mp(lng, 0)[0]; return `<line y1="0" y2="${MAP_H}" x1="${x}" x2="${x}"/><text x="${x + 3}" y="${MAP_H - 4}">${lng}°E</text>`; }).join("")}</g>
-    ${inner}
-  </svg>`;
-}
-
-const portMarks = (only) => Object.entries(PORTS).filter(([k]) => !only || k === only).map(([k, [lng, lat]]) => {
-  const [x, y] = mp(lng, lat);
-  const west = k === "Adabiya"; // label on the open side, away from the Sinai deposits
-  return `<g class="port"><rect x="${x - 4}" y="${y - 4}" width="8" height="8" transform="rotate(45 ${x} ${y})"/><text x="${west ? x - 8 : x + 8}" y="${y + 4}"${west ? ' text-anchor="end"' : ""}>${esc(k)}</text></g>`;
-}).join("");
-
-/* Materials in map order (north → south) with their index number. */
-function depositList() {
-  return [...new Set(PRODUCTS.map((p) => p.material))]
-    .filter((m) => matInfo(m) && matInfo(m).location)
-    .sort((a, b) => matInfo(b).location.lat - matInfo(a).location.lat)
-    .map((m, i) => ({ m, n: i + 1, loc: matInfo(m).location, grades: gradesOf(m) }));
-}
-
-function renderSurvey() {
-  const deps = depositList();
-  const anchors = deps.map((d) => { const [x, y] = mp(d.loc.lng, d.loc.lat); return { x, y }; });
-  const tags = placeTags(anchors);
-  const contours = deps.map((d, i) => contourRings(d.m, anchors[i].x, anchors[i].y, [9, 16, 24])).join("");
-  const marks = deps.map((d, i) => {
-    const a = anchors[i], g = tags[i], p = d.grades[0];
-    const from = Math.min(...d.grades.map((x) => x.basePrice));
-    return `<a class="dep" href="${pageHref(p)}" data-mat="${esc(d.m)}">
-      <title>${esc(d.n + ". " + pname(p) + " — " + t("survey.from") + " " + fmtPrice(from) + "/t")}</title>
-      <line class="leader" x1="${a.x}" y1="${a.y}" x2="${g.x.toFixed(1)}" y2="${g.y.toFixed(1)}"/>
-      <circle class="dep-dot" cx="${a.x}" cy="${a.y}" r="4.5" style="fill:${swatchOf(d.m)}"/>
-      <g class="dep-tag"><circle cx="${g.x.toFixed(1)}" cy="${g.y.toFixed(1)}" r="9"/><text x="${g.x.toFixed(1)}" y="${(g.y + 3.6).toFixed(1)}">${d.n}</text></g>
-    </a>`;
-  }).join("");
-  $("#surveyMap").innerHTML = baseMapSVG(`<g class="contours">${contours}</g>${portMarks()}${marks}`, t("survey.mapLabel")) +
-    `<figcaption>${esc(t("survey.schematic"))}</figcaption>`;
-  $("#depositIndex").innerHTML = deps.map((d) => {
-    const p = d.grades[0], info = matInfo(d.m), txt = matText(d.m) || {};
-    const from = Math.min(...d.grades.map((x) => x.basePrice));
-    const stock = d.grades.reduce((s, x) => s + x.stock, 0);
-    return `<li data-mat="${esc(d.m)}"><a href="${pageHref(p)}">
-      <span class="idx-n">${d.n}</span>${swatchHTML(d.m)}
-      <span class="idx-name">${esc(pname(p))}<small><span class="formula">${chem(info.formula)}</span> · ${esc(txt.region ? txt.region.split(",")[0] : porigin(p))}</small></span>
-      <span class="idx-price">${esc(t("survey.from"))} ${fmtPrice(from)}<small>${esc(d.grades.length === 1 ? t("card.grade1") : fill("card.gradesCount", { n: d.grades.length }))} · ${stock.toLocaleString()} t</small></span>
-    </a></li>`;
-  }).join("");
-}
-
-/* Origin map for one material: its deposit, contours and the route to its export port. */
-function originMapHTML(p, info) {
+function mapHTML(info, txt) {
   const loc = info && info.location;
   if (!loc || !Number.isFinite(loc.lat) || !Number.isFinite(loc.lng)) return "";
-  const [x, y] = mp(loc.lng, loc.lat);
-  const port = portOf(info);
-  const others = depositList().filter((d) => d.m !== p.material)
-    .map((d) => { const [ox, oy] = mp(d.loc.lng, d.loc.lat); return `<circle class="dep-ghost" cx="${ox}" cy="${oy}" r="3"/>`; }).join("");
-  const route = port ? (() => { const [px2, py2] = mp(...PORTS[port]); return `<line class="route" x1="${x}" y1="${y}" x2="${px2}" y2="${py2}"/>`; })() : "";
-  const big = `https://www.openstreetmap.org/?mlat=${loc.lat}&mlon=${loc.lng}#map=8/${loc.lat}/${loc.lng}`;
-  return `<figure class="mp-map">
-    ${baseMapSVG(`${others}<g class="contours focus">${contourRings(p.material, x, y, [10, 18, 27, 37])}</g>${route}${portMarks(port)}
-      <circle class="dep-dot big" cx="${x}" cy="${y}" r="7" style="fill:${swatchOf(p.material)}"/>
-      <text class="dep-label" x="${x + 12}" y="${y - 10}">${esc(pname(p))}</text>`, t("page.mapTitle"))}
-    <figcaption>${esc(t("survey.schematic"))} <a href="${esc(big)}" target="_blank" rel="noopener">${esc(t("page.openMap"))} ↗</a></figcaption>
-  </figure>`;
+  const { lat, lng } = loc;
+  const bbox = [lng - 1.6, lat - 1.1, lng + 1.6, lat + 1.1].map((v) => v.toFixed(3)).join(",");
+  const embed = `https://www.openstreetmap.org/export/embed.html?bbox=${bbox}&layer=mapnik&marker=${lat},${lng}`;
+  const big = `https://www.openstreetmap.org/?mlat=${lat}&mlon=${lng}#map=8/${lat}/${lng}`;
+  return `<div class="mp-map">
+      <iframe title="${esc(t("page.mapTitle"))}" src="${esc(embed)}" loading="lazy" referrerpolicy="no-referrer"></iframe>
+      <a href="${esc(big)}" target="_blank" rel="noopener">${esc(t("page.openMap"))} ↗</a>
+    </div>`;
 }
 
 function renderPage(keepState) {
@@ -854,7 +728,7 @@ function renderPage(keepState) {
 
   const loc = info && info.location;
   const origin = `<div class="mp-origin">
-      ${originMapHTML(p, info)}
+      ${mapHTML(info, txt)}
       <table class="kv-table">
         <tr><th scope="row">${esc(t("page.country"))}</th><td>${c ? `${c.flag} ${esc(cname(c))}` : esc(p.country)}</td></tr>
         <tr><th scope="row">${esc(t("page.region"))}</th><td>${esc(txt.region || porigin(p))}</td></tr>
@@ -884,7 +758,7 @@ function renderPage(keepState) {
       const g = gs[0];
       return `<a class="rel-card" href="${pageHref(g)}">
         <img src="${imgSrc(g)}" alt="" loading="lazy" onerror="this.remove()">
-        <span class="rel-name">${swatchHTML(m)}${esc(pname(g))}</span>
+        <span class="rel-name">${esc(pname(g))}</span>
         <span class="rel-sub">${gs.length > 1 ? esc(fill("card.gradesCount", { n: gs.length })) + " · " : ""}${fmtPrice(from)}+ / t</span>
       </a>`;
     }).join("");
@@ -899,34 +773,22 @@ function renderPage(keepState) {
       <span class="muted">/ ${esc(pcat(p.category))} / ${esc(pname(p))}</span>
     </nav>
 
-    <article class="cert">
-      <div class="cert-band"><span>OREVISION MATERIALS · ${esc(t("cert.title"))}</span><span class="cert-no">${esc(t("cert.no"))} OV-${esc(p.id.toUpperCase())}</span></div>
-      <div class="cert-grid">
-        <figure class="cert-photo">${artSVG(p)}<img src="${imgSrc(p)}" alt="${esc(pname(p))}" onerror="this.remove()"><figcaption>${esc(t("cert.fig"))}</figcaption></figure>
-        <div class="cert-main">
-          <p class="mp-kicker">${c ? `${c.flag} ${esc(cname(c))}` : ""} · ${esc(pcat(p.category))}</p>
-          <h1>${esc(pname(p))}</h1>
-          <p class="mp-form">${esc(pform(p))}</p>
-          <p class="cert-swatch">${swatchHTML(p.material)}${txt.color ? esc(txt.color) : ""}${info ? ` · <span class="formula">${chem(info.formula)}</span>` : ""}</p>
-          <dl class="leaders">
-            <div><dt>${esc(t("col.purity"))}</dt><dd>${val(p.grade)}</dd></div>
-            <div><dt>${esc(t("modal.price"))}</dt><dd>${fmtPrice(p.basePrice)} / ${esc(p.unit)} FOB</dd></div>
-            <div><dt>${esc(fill("page.stockAsOf", { date: fmtDate(LAST_UPDATED) }))}</dt><dd>${out ? esc(t("badge.out")) : `${p.stock.toLocaleString()} ${esc(p.unit)}`}</dd></div>
-            <div><dt>${esc(t("modal.moq"))}</dt><dd>${p.moq.toLocaleString()} ${esc(p.unit)}</dd></div>
-            <div><dt>${esc(t("cert.origin"))}</dt><dd>${esc(txt.region || porigin(p))}</dd></div>
-            <div><dt>${esc(t("page.hs"))}</dt><dd>${info ? `<bdi dir="ltr">${esc(info.hs)}</bdi>` : "—"}</dd></div>
-          </dl>
-        </div>
+    <header class="mp-head">
+      <div class="mp-photo">${artSVG(p)}<img src="${imgSrc(p)}" alt="${esc(pname(p))}" onerror="this.remove()"></div>
+      <div class="mp-title">
+        <p class="mp-kicker">${c ? `${c.flag} ${esc(cname(c))}` : ""} · ${esc(pcat(p.category))}${info ? ` · <span class="formula">${chem(info.formula)}</span>` : ""}</p>
+        <h1>${esc(pname(p))}</h1>
+        <p class="mp-form">${esc(pform(p))}</p>
+        <dl class="mp-facts">
+          <div><dt>${esc(t("col.purity"))}</dt><dd>${val(p.grade)}</dd></div>
+          <div><dt>${esc(t("page.form"))}</dt><dd>${esc(pform(p)) || "—"}</dd></div>
+          <div><dt>${esc(t("modal.price"))}</dt><dd>${fmtPrice(p.basePrice)} / ${esc(p.unit)} FOB</dd></div>
+          <div><dt>${esc(fill("page.stockAsOf", { date: fmtDate(LAST_UPDATED) }))}</dt><dd>${out ? esc(t("badge.out")) : `${p.stock.toLocaleString()} ${esc(p.unit)}`}</dd></div>
+          <div><dt>${esc(t("modal.moq"))}</dt><dd>${p.moq.toLocaleString()} ${esc(p.unit)}</dd></div>
+          <div><dt>${esc(t("page.hs"))}</dt><dd>${info ? `<bdi dir="ltr">${esc(info.hs)}</bdi>` : "—"}</dd></div>
+        </dl>
       </div>
-      ${specRows ? `<div class="cert-analysis">
-        <h2>${esc(t("page.analysis"))}</h2>
-        <dl class="leaders analysis">${p.specs.map(([k, v]) => `<div><dt>${specLabel(k)}</dt><dd>${val(v)}</dd></div>`).join("")}</dl>
-      </div>` : ""}
-      <div class="cert-foot">
-        <p>${esc(t("page.analysisNote"))}<br><span class="muted">${esc(t("cert.issued"))} ${esc(fmtDate(LAST_UPDATED))}</span></p>
-        <span class="stamp">${esc(t("cert.stamp"))}<small>${esc(fmtDate(LAST_UPDATED))}</small></span>
-      </div>
-    </article>
+    </header>
 
     <div class="mp-grid">
       <div class="mp-main">
@@ -934,6 +796,10 @@ function renderPage(keepState) {
           <thead><tr><th>${esc(t("col.form"))}</th><th>${esc(t("col.purity"))}</th><th class="num">${esc(fill("col.price", { cur: currency }))}</th>
           <th class="num">${esc(t("col.moq"))}</th><th class="num">${esc(t("col.stock"))}</th><th></th></tr></thead>
           <tbody>${gradeRows}</tbody></table></div>`)}
+
+        ${pageSection("analysis", t("page.analysis"), (specRows
+          ? `<table class="kv-table spec-kv"><thead><tr><th>${esc(t("page.parameter"))}</th><th class="num">${esc(t("page.spec"))}</th></tr></thead><tbody>${specRows}</tbody></table>`
+          : "") + `<p class="note">${esc(t("page.analysisNote"))}</p>`)}
 
         ${pageSection("history", t("page.history"), `${chartSVG(p)}
           <table class="kv-table"><thead><tr><th>${esc(t("page.date"))}</th><th class="num">${esc(t("modal.price"))}</th><th class="num">${esc(t("page.change"))}</th></tr></thead>
@@ -1279,7 +1145,6 @@ function applyI18n() {
 }
 
 function rerenderAll() {
-  renderSurvey();
   renderCountryTabs();
   renderProducts();
   renderCart();
@@ -1418,14 +1283,6 @@ function init() {
     }
   });
 
-  // survey map: highlight a deposit from the index and vice versa
-  const hl = (m) => document.querySelectorAll("#top [data-mat]").forEach((el) => el.classList.toggle("hl", el.dataset.mat === m));
-  ["mouseover", "focusin"].forEach((ev) => $("#top").addEventListener(ev, (e) => {
-    const el = e.target.closest("[data-mat]");
-    hl(el ? el.dataset.mat : "");
-  }));
-  $("#top").addEventListener("mouseleave", () => hl(""));
-
   // material page
   $("#materialPage").addEventListener("click", (e) => {
     const b = e.target.closest("[data-act]");
@@ -1489,7 +1346,6 @@ function init() {
   applyI18n();
   saveCart();
   renderMarket();
-  renderSurvey();
   renderCountryTabs();
   renderProducts();
   renderCart();

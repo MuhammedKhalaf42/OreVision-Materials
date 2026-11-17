@@ -5,14 +5,13 @@
 
    location: approximate deposit region shown on the map. Replace lat/lng
              with your exact mine coordinates when you want to publish them.
-   swatch:   the mineral's natural colour, used on the map and price list
    hs:       indicative customs (HS) codes — buyers confirm with their broker.
    benchmark: name of the related row in BENCHMARKS (data.js), if any.
    ============================================================ */
 
 const MATERIALS = {
   "iron-oxide": {
-    swatch: "#9b2d1f", formula: "Fe2O3", hardness: "5.5–6.5", density: "5.0–5.3 g/cm³",
+    formula: "Fe2O3", hardness: "5.5–6.5", density: "5.0–5.3 g/cm³",
     hs: "2821.20 (powder grades) · 2601.11 (lump)",
     benchmark: "Natural Red Iron Oxide Powder",
     location: { lat: 24.18, lng: 32.96, portKm: 230 },
@@ -32,7 +31,7 @@ const MATERIALS = {
     },
   },
   "iron-ore": {
-    swatch: "#6b3a2a", formula: "Fe2O3 · FeO(OH)", hardness: "5–6", density: "3.8–4.8 g/cm³",
+    formula: "Fe2O3 · FeO(OH)", hardness: "5–6", density: "3.8–4.8 g/cm³",
     hs: "2601.11", benchmark: "Iron Ore 58% Fe (CFR China)",
     location: { lat: 28.37, lng: 29.02, portKm: 420 },
     en: {
@@ -51,7 +50,7 @@ const MATERIALS = {
     },
   },
   "feldspar-k": {
-    swatch: "#d9a28e", formula: "KAlSi3O8", hardness: "6", density: "2.55–2.63 g/cm³",
+    formula: "KAlSi3O8", hardness: "6", density: "2.55–2.63 g/cm³",
     hs: "2529.10",
     location: { lat: 24.9, lng: 34.0, portKm: 260 },
     en: {
@@ -70,7 +69,7 @@ const MATERIALS = {
     },
   },
   "feldspar-na": {
-    swatch: "#e4ddd0", formula: "NaAlSi3O8", hardness: "6–6.5", density: "2.60–2.65 g/cm³",
+    formula: "NaAlSi3O8", hardness: "6–6.5", density: "2.60–2.65 g/cm³",
     hs: "2529.10",
     location: { lat: 28.9, lng: 33.6, portKm: 210 },
     en: {
@@ -89,7 +88,7 @@ const MATERIALS = {
     },
   },
   "quartz-hp": {
-    swatch: "#f4f2ec", formula: "SiO2", hardness: "7", density: "2.65 g/cm³",
+    formula: "SiO2", hardness: "7", density: "2.65 g/cm³",
     hs: "2506.10",
     location: { lat: 26.0, lng: 33.5, portKm: 120 },
     en: {
@@ -108,7 +107,7 @@ const MATERIALS = {
     },
   },
   "silica-sand": {
-    swatch: "#e2cc96", formula: "SiO2", hardness: "7", density: "2.65 g/cm³",
+    formula: "SiO2", hardness: "7", density: "2.65 g/cm³",
     hs: "2505.10", benchmark: "Silica Sand (Egypt FOB)",
     location: { lat: 29.11, lng: 32.62, portKm: 110 },
     en: {
@@ -127,7 +126,7 @@ const MATERIALS = {
     },
   },
   "phosphate": {
-    swatch: "#6f6a62", formula: "Ca5(PO4)3(F,OH)", hardness: "5", density: "2.9–3.2 g/cm³",
+    formula: "Ca5(PO4)3(F,OH)", hardness: "5", density: "2.9–3.2 g/cm³",
     hs: "2510.10", benchmark: "Phosphate Rock (Morocco)",
     location: { lat: 25.43, lng: 30.08, portKm: 600 },
     en: {
@@ -146,7 +145,7 @@ const MATERIALS = {
     },
   },
   "kaolin": {
-    swatch: "#efe8d8", formula: "Al2Si2O5(OH)4", hardness: "2–2.5", density: "2.6 g/cm³",
+    formula: "Al2Si2O5(OH)4", hardness: "2–2.5", density: "2.6 g/cm³",
     hs: "2507.00",
     location: { lat: 29.05, lng: 33.15, portKm: 190 },
     en: {
@@ -165,7 +164,7 @@ const MATERIALS = {
     },
   },
   "talc": {
-    swatch: "#c9d5c3", formula: "Mg3Si4O10(OH)2", hardness: "1", density: "2.7–2.8 g/cm³",
+    formula: "Mg3Si4O10(OH)2", hardness: "1", density: "2.7–2.8 g/cm³",
     hs: "2526.20",
     location: { lat: 24.6, lng: 34.75, portKm: 300 },
     en: {
@@ -184,7 +183,7 @@ const MATERIALS = {
     },
   },
   "gypsum": {
-    swatch: "#e9e3d6", formula: "CaSO4·2H2O", hardness: "2", density: "2.3 g/cm³",
+    formula: "CaSO4·2H2O", hardness: "2", density: "2.3 g/cm³",
     hs: "2520.10",
     location: { lat: 29.2, lng: 32.97, portKm: 130 },
     en: {
@@ -203,7 +202,7 @@ const MATERIALS = {
     },
   },
   "ilmenite": {
-    swatch: "#262626", formula: "FeTiO3", hardness: "5–6", density: "4.5–5.0 g/cm³",
+    formula: "FeTiO3", hardness: "5–6", density: "4.5–5.0 g/cm³",
     hs: "2614.00", benchmark: "Ilmenite (Malaysia)",
     location: { lat: 24.33, lng: 35.07, portKm: 380 },
     en: {
@@ -222,7 +221,7 @@ const MATERIALS = {
     },
   },
   "manganese": {
-    swatch: "#3d3537", formula: "MnO2", hardness: "2–6.5", density: "4.4–5.1 g/cm³",
+    formula: "MnO2", hardness: "2–6.5", density: "4.4–5.1 g/cm³",
     hs: "2602.00",
     location: { lat: 29.02, lng: 33.37, portKm: 180 },
     en: {
@@ -241,7 +240,7 @@ const MATERIALS = {
     },
   },
   "limestone": {
-    swatch: "#d6cfbf", formula: "CaCO3", hardness: "3", density: "2.6–2.7 g/cm³",
+    formula: "CaCO3", hardness: "3", density: "2.6–2.7 g/cm³",
     hs: "2521.00",
     location: { lat: 28.1, lng: 30.75, portKm: 450 },
     en: {
@@ -290,7 +289,6 @@ Object.assign(I18N.en, {
   "card.gradesN": "+{n} more grades",
   "card.view": "Details",
   "card.gradesCount": "{n} grades",
-  "card.grade1": "1 grade",
   "page.back": "← Back to catalog",
   "page.catalog": "Catalog",
   "page.grades": "Available grades",
@@ -365,22 +363,6 @@ Object.assign(I18N.en, {
   "page.facts": "Key facts",
   "page.stockAsOf": "Stock as of {date}",
   "page.mapTitle": "Map of the deposit region",
-  "survey.kicker": "Survey sheet 01 · Industrial minerals of Egypt",
-  "survey.title": "Industrial minerals, traced to the deposit.",
-  "survey.sub": "Thirteen materials from named Egyptian deposits, each supplied to a written specification with typical analysis, indicative FOB price and published stock. Select a deposit to open its specification sheet.",
-  "survey.index": "Deposit index",
-  "survey.from": "from",
-  "survey.schematic": "Schematic map; deposit regions are approximate.",
-  "survey.sea1": "MEDITERRANEAN SEA",
-  "survey.sea2": "RED SEA",
-  "survey.nile": "Nile",
-  "survey.mapLabel": "Map of Egypt showing the deposit of each material and the export ports",
-  "cert.title": "SPECIFICATION SHEET · TYPICAL ANALYSIS",
-  "cert.no": "No.",
-  "cert.fig": "Fig. 1: mineral specimen (illustrative)",
-  "cert.origin": "Deposit",
-  "cert.issued": "Issued from the price list dated",
-  "cert.stamp": "Typical values",
   "util.staff": "Staff · Operations",
   "footer.staff": "Staff area: Operations console",
 });
@@ -397,7 +379,6 @@ Object.assign(I18N.ar, {
   "card.gradesN": "+{n} درجات أخرى",
   "card.view": "التفاصيل",
   "card.gradesCount": "{n} درجات",
-  "card.grade1": "درجة واحدة",
   "page.back": "→ العودة إلى الكتالوج",
   "page.catalog": "الكتالوج",
   "page.grades": "الدرجات المتاحة",
@@ -472,22 +453,6 @@ Object.assign(I18N.ar, {
   "page.facts": "بيانات أساسية",
   "page.stockAsOf": "المخزون حتى {date}",
   "page.mapTitle": "خريطة منطقة الرواسب",
-  "survey.kicker": "لوحة المسح ٠١ · الخامات الصناعية في مصر",
-  "survey.title": "خامات صناعية، معروفة المصدر حتى الرواسب.",
-  "survey.sub": "ثلاث عشرة خامة من رواسب مصرية محددة، تُورَّد كل منها وفق مواصفة مكتوبة بتحليل نموذجي وسعر FOB استرشادي ومخزون معلن. اختر موقعاً لفتح ورقة مواصفاته.",
-  "survey.index": "فهرس الرواسب",
-  "survey.from": "من",
-  "survey.schematic": "خريطة توضيحية؛ مواقع الرواسب تقريبية.",
-  "survey.sea1": "البحر المتوسط",
-  "survey.sea2": "البحر الأحمر",
-  "survey.nile": "النيل",
-  "survey.mapLabel": "خريطة مصر تبين رواسب كل خامة وموانئ التصدير",
-  "cert.title": "ورقة المواصفات · تحليل نموذجي",
-  "cert.no": "رقم",
-  "cert.fig": "شكل ١: عينة من الخامة (توضيحية)",
-  "cert.origin": "الرواسب",
-  "cert.issued": "صادرة من قائمة الأسعار بتاريخ",
-  "cert.stamp": "قيم نموذجية",
   "util.staff": "الموظفون · العمليات",
   "footer.staff": "منطقة الموظفين: لوحة العمليات",
 });
