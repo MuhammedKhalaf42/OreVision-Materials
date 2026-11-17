@@ -4,15 +4,20 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>Photo Credits — OreVision Materials</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
+<meta name="theme-color" content="#0d3b66">
 <style>
-  :root { --bg:#0e1116; --card:#1a2029; --border:#2a3240; --text:#e8ecf1; --muted:#9aa5b1; --accent:#f5a623; }
+  :root { --bg:#f3f5f7; --card:#ffffff; --border:#d6dce2; --text:#15202b; --muted:#5b6875; --accent:#0d3b66; --link:#1a5a96; }
   * { box-sizing: border-box; }
-  body { font-family: system-ui, sans-serif; background: var(--bg); color: var(--text); margin: 0; padding: 30px 16px; line-height: 1.6; }
+  body { font-family: "IBM Plex Sans", "Segoe UI", system-ui, sans-serif; background: var(--bg); color: var(--text); margin: 0; padding: 30px 16px; line-height: 1.6; }
   .wrap { max-width: 860px; margin: 0 auto; }
   h1 { color: var(--accent); }
-  a { color: var(--accent); }
+  a { color: var(--link); }
+  .topbar { background: #0a2540; color: #fff; margin: -30px -16px 24px; padding: 10px 16px; }
+  .topbar a { color: #fff; font-weight: 600; }
   p.note { color: var(--muted); }
-  .credit { display: flex; gap: 16px; align-items: center; background: var(--card); border: 1px solid var(--border); border-radius: 10px; padding: 12px; margin: 12px 0; }
+  .credit { display: flex; gap: 16px; align-items: center; background: var(--card); border: 1px solid var(--border); border-radius: 3px; padding: 12px; margin: 12px 0; }
   .credit img { width: 110px; height: 74px; object-fit: cover; border-radius: 7px; flex-shrink: 0; }
   .credit div { font-size: .9rem; min-width: 0; overflow-wrap: anywhere; }
   .credit span { color: var(--muted); }
@@ -20,7 +25,7 @@
 </head>
 <body>
 <div class="wrap">
-  <p><a href="index.html">← Back to OreVision Materials</a></p>
+  <div class="topbar"><a href="index.html">← Back to OreVision Materials</a></div>
   <h1>Photo Credits</h1>
   <p class="note">Product and background photographs are from Wikimedia Commons and are used under
     their respective free licenses. Photos are illustrative of the mineral type and are not
