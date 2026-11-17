@@ -381,6 +381,8 @@ Object.assign(I18N.en, {
   "cert.origin": "Deposit",
   "cert.issued": "Issued from the price list dated",
   "cert.stamp": "Typical values",
+  "util.staff": "Staff · Operations",
+  "footer.staff": "Staff area: Operations console",
 });
 
 Object.assign(I18N.ar, {
@@ -486,4 +488,6 @@ Object.assign(I18N.ar, {
   "cert.origin": "الرواسب",
   "cert.issued": "صادرة من قائمة الأسعار بتاريخ",
   "cert.stamp": "قيم نموذجية",
+  "util.staff": "الموظفون · العمليات",
+  "footer.staff": "منطقة الموظفين: لوحة العمليات",
 });

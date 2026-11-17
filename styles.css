@@ -585,3 +585,11 @@ body.ar .footer-inner h4, body.ar .docs-box h3, body.ar .hero-stats dt, body.ar 
 body.ar .kv-table thead th, body.ar .market-table thead th, body.ar .view-toggle button, body.ar .figcaption,
 body.ar .cert-photo figcaption, body.ar .survey-map figcaption, body.ar .mp-map figcaption, body.ar .sel-tag,
 body.ar .section-head h2::before { font-family: var(--font-ar); letter-spacing: 0; }
+
+/* Staff entrance to the operations console */
+.utility-bar .staff-link { border-color: #e08a6c; color: #f0b39f; }
+.utility-bar .staff-link:hover { background: #e08a6c; color: #1c2622; border-color: #e08a6c; }
+@media (max-width: 680px) {
+  .utility-inner > p { display: none; }
+  .utility-inner { justify-content: flex-end; }
+}
