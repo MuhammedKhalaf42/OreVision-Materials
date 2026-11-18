@@ -391,7 +391,7 @@ const PRODUCTS = [
   },
 ];
 
-/* Reference prices shown in the ticker and the Global Prices table.
+/* Reference prices shown in the Market Reference Data table.
    Each entry has either `price` (a single figure) or `range` (text such
    as "300–800"), plus `asOf` and `source` so buyers can see how current
    and where each number comes from. Update these by hand; there is no

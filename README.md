@@ -16,7 +16,7 @@ A static marketplace website for AI-sorted mining materials — the selling coun
 Material page text (history, geology, map location, HS codes) lives in `materials.js`.
 
 ## Operations console (`ops.html`)
-The internal back office — not linked from the public site and hidden from search engines.
+The internal back office, reached from the "Staff · Operations" link in the top bar (hidden from search engines; it holds no data until staff enter it in their own browser).
 Open it at `…/OreVision-Materials/ops.html`.
 - **Dashboard** — open RFQs and pipeline value, won contracts and win rate, released stock, stock pending lab, active shipments, and action items (stock shortfalls against contracts, missing shipping documents, low stock)
 - **RFQs & Orders** — every inquiry with company, grade, quantity, delivery term, target and quoted price; statuses New → Quoted → Negotiation → Won (contract) / Lost
@@ -41,7 +41,7 @@ Until one of the first two is set, the form tells visitors honestly that nothing
 ```bash
 node tests/run-tests.js
 ```
-42 checks covering data integrity (every product has a photo, country, form, specs and Arabic translation; every material has a page entry in both languages; English and Arabic keys match), quantity and discount rules, price-history rules, recovery from corrupt saved data, and the operations logic (stock commitments, KPIs, publishing, backups). Run it after editing `data.js` or `i18n.js`.
+45 checks covering data integrity (every product has a photo, country, form, specs and Arabic translation; every material has a page entry in both languages; English and Arabic keys match and none is left unused), quantity and discount rules, price-history rules, recovery from corrupt saved data, and the operations logic (stock commitments, KPIs, publishing, backups). Run it after editing `data.js` or `i18n.js`.
 
 ## How the site protects itself
 - A typo in `data.js` (text where a number should be, a broken price history, a duplicate id) is repaired or skipped at startup instead of breaking the page.
@@ -58,17 +58,16 @@ node tests/run-tests.js
 - **Arabic / English toggle** (عربي button) with full right-to-left layout — the whole site, catalog included, flips languages
 - **Live exchange rate** — USD→EGP updates from a free public API on page load. The reference prices are updated by hand in `data.js` (`BENCHMARKS`): there is no free live feed for iron ore, iron oxide or the other industrial minerals, so each entry carries an `asOf` date and a `source`.
 - **Order calculator** in every product detail: quantity + delivery term (EXW/FOB/CIF) + destination region → estimated total with freight
-- **Volume discounts** — tiers in `data.js` (`SITE.DISCOUNT_TIERS`): ≥5× MOQ → −3%, ≥20× MOQ → −7%, applied automatically in the cart and calculator
-- **90-day price charts** in product details
+- **Volume discounts** — tiers in `data.js` (`SITE.DISCOUNT_TIERS`): ≥5× MOQ → −3%, ≥20× MOQ → −7%, applied automatically to RFQ lines and in the calculator
+- **Price history charts** on material pages, drawn from real recorded prices once a grade has two or more
 - **Price alerts** — buyers set a target price per product; a banner appears when the price reaches it
-- **Exit popup** — offers the CSV price list and an email signup when the visitor is about to leave (once per visit)
 - **About & Certifications section** with the sorting process and export documentation list
 - **Admin page** — open `admin.html`, edit prices/stock in a table, download a fresh `data.js`, replace the old one on GitHub. No coding needed.
 - **Product card artwork** — procedurally generated strata graphics colored by category
 
 ## More built-in features
-- **Product detail pages** — click any product name for a full spec sheet with packaging and Incoterms
-- **Printable datasheets** — every product modal has a Print Datasheet button buyers can save as PDF
+- **Material pages** — click any product name for a full spec sheet with packaging and Incoterms
+- **Printable datasheets** — every material page has a Print Datasheet button buyers can save as PDF
 - **CSV price list download** — button under the catalog, for buyers who work in Excel
 - **Notify me** — out-of-stock products let buyers request a restock alert
 - **SEO ready** — Open Graph tags (nice link previews on WhatsApp/LinkedIn), Product structured data for Google, `sitemap.xml` + `robots.txt` (update the URL inside them if your repo name differs from `OreVision-Materials`)
@@ -76,7 +75,7 @@ node tests/run-tests.js
 ## Editing prices and stock
 Everything lives in **`data.js`**:
 - `PRODUCTS` — change `basePrice`, `stock`, add or remove materials
-- `BENCHMARKS` — the ticker / market-table numbers
+- `BENCHMARKS` — the Market Reference Data table
 - `USD_TO_EGP` — the exchange rate
 - `LAST_UPDATED` — shown on the catalog
 
@@ -90,12 +89,11 @@ Then open http://localhost:4173
 
 ## Deploy to GitHub Pages (same as your first site)
 1. Create a new repository, e.g. `OreVision-Materials`
-2. Upload `index.html`, `styles.css`, `app.js`, `data.js`
+2. Upload all files and the `images/` folder (`index.html`, `styles.css`, `app.js`, `data.js`, `i18n.js`, `materials.js`, `ops.html`, `ops.js`, `admin.html`, `datafile.js`, `credits.html`, `robots.txt`, `sitemap.xml`)
 3. Repository **Settings → Pages → Deploy from branch → main / (root)**
 4. The site appears at `https://muhammedkhalaf42.github.io/OreVision-Materials/`
 
 ## Ideas for later
 - Wire the inquiry form to a free form service (Formspree / Web3Forms) so submissions reach your email
 - Pull real commodity prices from a free API (e.g. metals.dev) instead of `data.js`
-- Arabic version (your showcase already has العربية — same approach works here)
-- Per-product detail pages with datasheets and purity certificates
+- Downloadable purity certificates per lot on the material pages

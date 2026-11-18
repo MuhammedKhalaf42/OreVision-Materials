@@ -95,6 +95,11 @@ console.log("Data integrity");
     eq(run("Object.keys(I18N.en).filter(k => !(k in I18N.ar))"), [], "missing in ar:");
     eq(run("Object.keys(I18N.ar).filter(k => !(k in I18N.en))"), [], "missing in en:");
   });
+  test("every translation key is used by the site (no leftovers from removed features)", () => {
+    const src = read("app.js") + read("index.html");
+    const built = [/^page\.step\d[tp]$/, /^page\.faq\d[qa]$/]; // keys assembled in a loop
+    eq(run("Object.keys(I18N.en)").filter((k) => !src.includes(`"${k}"`) && !built.some((r) => r.test(k))), []);
+  });
   test("every product's photo file exists", () => {
     const ids = run("PRODUCTS.map(p => p.image)");
     eq(ids.filter((id) => !fs.existsSync(path.join(root, "images", id + ".jpg"))), []);

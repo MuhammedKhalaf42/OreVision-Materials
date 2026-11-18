@@ -12,10 +12,6 @@ const store = {
   },
   setJson(key, val) { try { localStorage.setItem(key, JSON.stringify(val)); } catch (_) { /* storage unavailable */ } },
 };
-const session = {
-  get(key) { try { return sessionStorage.getItem(key); } catch (_) { return null; } },
-  set(key, val) { try { sessionStorage.setItem(key, val); } catch (_) { /* storage unavailable */ } },
-};
 
 /* ---------- state ---------- */
 let currency = store.str("ov-currency") === "EGP" ? "EGP" : "USD";
@@ -239,7 +235,7 @@ function artSVG(p) {
   </svg>`;
 }
 
-/* ---------- reference prices: ticker + table ---------- */
+/* ---------- market reference prices table ---------- */
 const benchPrice = (b) =>
   b.range ? String(b.range) : b.price.toLocaleString(undefined, { maximumFractionDigits: 2 });
 
@@ -451,7 +447,7 @@ function cardHTML(p) {
   </article>`;
 }
 
-/* ---------- cart (validated quantities, volume discounts, editable lines) ---------- */
+/* ---------- RFQ lines (`cart`): validated quantities, volume discounts, editable lines ---------- */
 function sanitizeCart(raw) {
   const out = [];
   const seen = new Set();
@@ -556,7 +552,7 @@ function renderCart() {
       <td class="num">${fmtPrice(p.basePrice)}</td>
       <td class="num">${pct ? pctOff(pct) : "—"}</td>
       <td class="num"><strong>${fmtPrice(total)}</strong></td>
-      <td class="num"><button type="button" class="line-remove" data-remove="${id}" aria-label="${esc(t("drawer.remove"))} — ${esc(pfull(p))}" title="${esc(t("drawer.remove"))}">✕</button></td>
+      <td class="num"><button type="button" class="line-remove" data-remove="${id}" aria-label="${esc(t("rfq.remove"))} — ${esc(pfull(p))}" title="${esc(t("rfq.remove"))}">✕</button></td>
     </tr>`;
   }).join("");
   box.innerHTML = `<div class="rfq-head"><h3>${esc(t("rfq.linesTitle"))}</h3><button type="button" class="util-btn" data-clear-rfq>${esc(t("rfq.clear"))}</button></div>
@@ -683,7 +679,7 @@ function pageSection(id, title, body) {
   return `<section class="mp-sec" id="mp-${id}"><h2>${esc(title)}</h2>${body}</section>`;
 }
 
-function mapHTML(info, txt) {
+function mapHTML(info) {
   const loc = info && info.location;
   if (!loc || !Number.isFinite(loc.lat) || !Number.isFinite(loc.lng)) return "";
   const { lat, lng } = loc;
@@ -744,7 +740,7 @@ function renderPage(keepState) {
 
   const loc = info && info.location;
   const origin = `<div class="mp-origin">
-      ${mapHTML(info, txt)}
+      ${mapHTML(info)}
       <table class="kv-table">
         <tr><th scope="row">${esc(t("page.country"))}</th><td>${c ? `${c.flag} ${esc(cname(c))}` : esc(p.country)}</td></tr>
         <tr><th scope="row">${esc(t("page.region"))}</th><td>${esc(txt.region || porigin(p))}</td></tr>
@@ -1141,10 +1137,7 @@ function applyI18n() {
   document.documentElement.lang = lang;
   document.documentElement.dir = lang === "ar" ? "rtl" : "ltr";
   document.body.classList.toggle("ar", lang === "ar");
-  document.querySelectorAll("[data-i18n]").forEach((el) => {
-    const v = t(el.dataset.i18n);
-    if (v.includes("<br>")) el.innerHTML = v; else el.textContent = v;
-  });
+  document.querySelectorAll("[data-i18n]").forEach((el) => { el.textContent = t(el.dataset.i18n); }); // text only, never HTML
   document.querySelectorAll("[data-i18n-ph]").forEach((el) => {
     el.placeholder = t(el.dataset.i18nPh);
   });
