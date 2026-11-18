@@ -361,7 +361,8 @@ function renderProducts() {
   const grid = $("#productGrid");
   if (!list.length) {
     grid.className = "product-grid";
-    grid.innerHTML = `<p class="cart-empty">${t("catalog.noMatch")}</p>`;
+    grid.innerHTML = `<div class="catalog-empty"><span>${esc(t("catalog.noMatch"))}</span>
+      <button type="button" class="btn-outline" data-clear-filters>${esc(t("catalog.clearFilters"))}</button></div>`;
     return;
   }
   if (view === "cards") {
@@ -371,6 +372,14 @@ function renderProducts() {
     grid.className = "spec-table-wrap";
     grid.innerHTML = tableHTML(list);
   }
+}
+
+function clearFilters() {
+  $("#searchInput").value = "";
+  $("#categoryFilter").value = "";
+  $("#inStockOnly").checked = false;
+  renderProducts();
+  $("#searchInput").focus();
 }
 
 function qtyControl(p) {
@@ -942,7 +951,7 @@ function printDatasheet(p) {
   const specs = p.specs.map(([k, v]) => `<tr><td>${chem(k)}</td><td>${esc(v)}</td></tr>`).join("");
   w.document.write(`<!doctype html><html><head><meta charset="utf-8"><title>${esc(pfullEn(p))} — Datasheet</title>
     <style>body{font-family:Arial,sans-serif;max-width:720px;margin:40px auto;color:#222}
-    h1{border-bottom:3px solid #f5a623;padding-bottom:8px;font-size:1.5em}h2{font-size:1.05em;margin-top:22px}
+    h1{border-bottom:3px solid #0d3b66;color:#0d3b66;padding-bottom:8px;font-size:1.5em}h2{font-size:1.05em;margin-top:22px}
     td{padding:6px 12px;border:1px solid #ccc}td:first-child{width:38%;background:#f6f6f6}
     table{border-collapse:collapse;width:100%}.muted{color:#777;font-size:.85em}</style></head><body>
     <h1>OreVision Materials — ${esc(p.name)}</h1>
@@ -996,7 +1005,7 @@ function checkAlerts() {
 /* ---------- inquiry form ---------- */
 function goToContact(message) {
   const msg = document.querySelector('[name="message"]');
-  if (message != null) msg.value = message;
+  if (message && !msg.value.includes(message)) msg.value = msg.value.trim() ? `${msg.value.trim()}\n\n${message}` : message;
   document.getElementById("contact").scrollIntoView({ behavior: "smooth" });
   msg.focus({ preventScroll: true });
 }
@@ -1263,6 +1272,7 @@ function init() {
       if (again) again.focus();
       return;
     }
+    if (e.target.closest("[data-clear-filters]")) { clearFilters(); return; }
     const notify = e.target.closest(".btn-notify");
     if (notify) {
       const p = byId(notify.dataset.id);
@@ -1333,6 +1343,8 @@ function init() {
   if (SITE.CONTACT_EMAIL) {
     $("#footerEmail").textContent = SITE.CONTACT_EMAIL;
     $("#footerEmail").href = "mailto:" + SITE.CONTACT_EMAIL;
+  } else {
+    $("#footerEmail").remove(); // an empty link is an invisible tab stop
   }
 
   // WhatsApp button (shown only when a number is configured in data.js)

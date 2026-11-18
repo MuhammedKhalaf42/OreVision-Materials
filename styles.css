@@ -66,6 +66,8 @@ bdi[dir="ltr"] { unicode-bidi: isolate; }
 input:focus-visible, select:focus-visible, textarea:focus-visible, button:focus-visible, a:focus-visible, summary:focus-visible {
   outline: 2px solid var(--link); outline-offset: 2px;
 }
+/* the default blue ring disappears on the navy bars, hero and footer */
+.utility-bar :focus-visible, .hero :focus-visible, .rfq-bar :focus-visible, .site-footer :focus-visible { outline-color: #fff; }
 
 /* ---- Buttons: square, solid, high-contrast — classic industrial controls ----
    2px borders, bold capitals, a hard bottom edge that "presses" on click. */
@@ -104,8 +106,7 @@ input:focus-visible, select:focus-visible, textarea:focus-visible, button:focus-
   padding: 6px 12px; font-size: .74rem; box-shadow: 0 2px 0 var(--primary);
 }
 .btn-add:hover:not(:disabled) { background: var(--primary); color: var(--primary-ink); }
-.btn-add.btn-notify { border-color: var(--border-strong); color: var(--muted); box-shadow: 0 2px 0 var(--border-strong); }
-.btn-add.btn-notify:hover { background: var(--surface-2); color: var(--text); }
+.btn-add.btn-notify { min-width: 108px; }
 .btn-mini { border: 2px solid var(--primary); color: var(--primary); background: var(--surface); padding: 2px 10px; font-size: .7rem; box-shadow: 0 2px 0 var(--primary); }
 .btn-mini:hover { background: var(--primary); color: var(--primary-ink); }
 
@@ -117,7 +118,7 @@ input:focus-visible, select:focus-visible, textarea:focus-visible, button:focus-
 .rfq-check input { position: absolute; opacity: 0; width: 1px; height: 1px; }
 .rfq-check:hover { background: var(--primary-soft); }
 .rfq-check.on { background: var(--primary); color: var(--primary-ink); box-shadow: inset 0 2px 0 rgba(0,0,0,.25); transform: translateY(2px); }
-.rfq-check:focus-within { outline: 2px solid var(--link); outline-offset: 2px; }
+.rfq-check:has(input:focus-visible) { outline: 2px solid var(--link); outline-offset: 2px; }
 
 /* ---- Utility bar ---- */
 .utility-bar { background: var(--navy-deep); color: #c9d6e2; font-size: .78rem; }
@@ -166,8 +167,8 @@ input:focus-visible, select:focus-visible, textarea:focus-visible, button:focus-
 
 /* ---- Sections ---- */
 .section { padding: 44px 24px; max-width: 1240px; margin: 0 auto; }
-.section-alt { background: var(--surface); max-width: none; border-top: 1px solid var(--border); border-bottom: 1px solid var(--border); }
-.section-alt > * { max-width: 1192px; margin-left: auto; margin-right: auto; }
+.section-alt { background: var(--surface); max-width: none; border-top: 1px solid var(--border); border-bottom: 1px solid var(--border);
+  padding-inline: max(24px, calc((100% - 1192px) / 2)); } /* full-width band, content on the 1192px grid */
 .section-head { margin-bottom: 18px; }
 .section-head h2 { font-size: 1.4rem; font-weight: 600; margin-bottom: 4px; }
 .section-head p { color: var(--muted); font-size: .92rem; }
@@ -303,9 +304,11 @@ input:focus-visible, select:focus-visible, textarea:focus-visible, button:focus-
 .rfq-lines { border-bottom: 1px solid var(--border); padding-bottom: 16px; }
 .rfq-head { display: flex; justify-content: space-between; align-items: center; gap: 10px; margin-bottom: 8px; }
 .rfq-head h3 { font-size: .8rem; text-transform: uppercase; letter-spacing: .07em; color: var(--primary); }
-.rfq-empty { color: var(--muted); font-size: .88rem; border: 1px dashed var(--border-strong); padding: 12px 14px; background: var(--bg); }
+.rfq-empty, .catalog-empty { color: var(--muted); font-size: .88rem; border: 1px dashed var(--border-strong); padding: 12px 14px; background: var(--bg); }
+.catalog-empty { grid-column: 1 / -1; display: flex; align-items: center; justify-content: space-between; gap: 12px; flex-wrap: wrap; background: var(--surface); }
 .rfq-table tfoot td { background: var(--surface-2); border-top: 2px solid var(--border-strong); font-weight: 600; }
 .rfq-table .qty { width: 92px; }
+.rfq-table td:nth-child(2) { min-width: 150px; }
 .line-remove { background: none; border: 2px solid transparent; color: var(--muted); cursor: pointer; font-size: .9rem; padding: 0 6px; }
 .line-remove:hover { color: var(--red); border-color: var(--red); }
 
