@@ -1,5 +1,5 @@
 /* ============================================================
-   OreVision Materials — English / Arabic translations
+   Ore Bridge — English / Arabic translations
    ============================================================ */
 
 const I18N = {
@@ -51,7 +51,7 @@ const I18N = {
     "why.f3t": "Export logistics", "why.f3p": "EXW at the mine, FOB Alexandria / Adabiya, or CIF to the destination port, with full export documentation.",
     "why.f4t": "Pricing policy", "why.f4p": "Prices are referenced to published market benchmarks. Quotation validity and volume discounts are stated on every grade page.",
     "about.title": "Quality Assurance & Compliance",
-    "about.p1": "OreVision Materials is the trading arm of OreVision, an Egyptian ore-sorting technology company founded in 2025. Every lot passes computer-vision sorting and laboratory testing before it is released for shipment.",
+    "about.p1": "Ore Bridge is the trading arm of OreVision, an Egyptian ore-sorting technology company founded in 2025. Every lot passes computer-vision sorting and laboratory testing before it is released for shipment.",
     "about.step1t": "1 · Sorting", "about.step1p": "Computer-vision sorting removes off-grade material at the source.",
     "about.step2t": "2 · Laboratory analysis", "about.step2p": "Each lot is sampled and tested against its grade specification.",
     "about.step3t": "3 · Release & documentation", "about.step3p": "Lots are released with a certificate of analysis and export documents.",
@@ -90,7 +90,7 @@ const I18N = {
     "alert.banner": "Price alert: {name} is now {price}, at or below your target of {target}.",
     "alert.dismiss": "Dismiss",
     "notify.msg": "Please notify me when {name} is back in stock.\nQuantity needed: {qty} t",
-    "footer.rights": "© 2026 OreVision Materials. Trading arm of",
+    "footer.rights": "© 2026 Ore Bridge. Trading arm of",
     "footer.disclaimer": "All prices are indicative benchmarks, not binding offers.",
     "footer.credits": "Photo credits",
     "util.note": "Indicative FOB prices · USD per metric tonne · Updated",
@@ -179,7 +179,7 @@ const I18N = {
     "why.f3t": "لوجستيات التصدير", "why.f3p": "تسليم المنجم EXW، أو FOB الإسكندرية / العضبية، أو CIF حتى ميناء الوصول، مع مستندات تصدير كاملة.",
     "why.f4t": "سياسة التسعير", "why.f4p": "الأسعار مرتبطة بمؤشرات السوق المنشورة. وتُذكر صلاحية العرض وخصومات الكمية في صفحة كل درجة.",
     "about.title": "ضمان الجودة والامتثال",
-    "about.p1": "OreVision Materials هي الذراع التجارية لشركة OreVision، الشركة المصرية لتقنيات فرز الخامات التي تأسست عام ٢٠٢٥. تمر كل شحنة بالفرز بالرؤية الحاسوبية والاختبار المعملي قبل الإفراج عنها للشحن.",
+    "about.p1": "Ore Bridge (أور بريدج) هي الذراع التجارية لشركة OreVision، الشركة المصرية لتقنيات فرز الخامات التي تأسست عام ٢٠٢٥. تمر كل شحنة بالفرز بالرؤية الحاسوبية والاختبار المعملي قبل الإفراج عنها للشحن.",
     "about.step1t": "١ · الفرز", "about.step1p": "يستبعد الفرز بالرؤية الحاسوبية المواد خارج الدرجة من المصدر.",
     "about.step2t": "٢ · التحليل المعملي", "about.step2p": "تؤخذ عينة من كل شحنة وتُختبر وفق مواصفة درجتها.",
     "about.step3t": "٣ · الإفراج والمستندات", "about.step3p": "يُفرج عن الشحنات مع شهادة تحليل ومستندات التصدير.",
@@ -218,7 +218,7 @@ const I18N = {
     "alert.banner": "تنبيه سعري: {name} الآن بسعر {price}، عند أو أقل من هدفك {target}.",
     "alert.dismiss": "إغلاق",
     "notify.msg": "يرجى إخطاري عند توفر {name} مجدداً.\nالكمية المطلوبة: {qty} طن",
-    "footer.rights": "© ٢٠٢٦ OreVision Materials. الذراع التجارية لـ",
+    "footer.rights": "© ٢٠٢٦ Ore Bridge (أور بريدج). الذراع التجارية لـ",
     "footer.disclaimer": "جميع الأسعار مؤشرات استرشادية وليست عروضاً ملزمة.",
     "footer.credits": "حقوق الصور",
     "util.note": "أسعار FOB استرشادية · دولار للطن المتري · آخر تحديث",

@@ -1,5 +1,5 @@
 /* ============================================================
-   OreVision Materials — material pages content (English / Arabic)
+   Ore Bridge — material pages content (English / Arabic)
    One entry per material (the `material` key in data.js). All grades
    of a material share this page.
 

@@ -1,4 +1,4 @@
-/* Logic tests for OreVision Materials.  Run:  node tests/run-tests.js
+/* Logic tests for Ore Bridge.  Run:  node tests/run-tests.js
    Loads data.js, i18n.js, materials.js and app.js into a sandbox with a stub browser
    environment and checks the pure logic (no real DOM needed).            */
 "use strict";

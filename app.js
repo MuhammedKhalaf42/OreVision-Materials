@@ -1,4 +1,4 @@
-/* ============ OreVision Materials — app logic ============ */
+/* ============ Ore Bridge — app logic ============ */
 "use strict";
 
 /* ---------- safe storage (private mode / blocked storage / corrupt values never break the page) ---------- */
@@ -24,7 +24,7 @@ let alerts = [];
 let usdToEgp = Number(USD_TO_EGP) > 0 ? Number(USD_TO_EGP) : 1;
 let TIERS = [];
 let pageRoute = null; // { material, id } while a material page is open
-let baseTitle = "OreVision Materials";
+let baseTitle = "Ore Bridge";
 
 const $ = (sel) => document.querySelector(sel);
 const t = (key) => (I18N[lang] && I18N[lang][key]) || I18N.en[key] || key;
@@ -717,7 +717,7 @@ function renderPage(keepState) {
   const bench = info && info.benchmark ? BENCHMARKS.find((b) => b.name === info.benchmark) : null;
   const existing = alerts.find((a) => a.id === p.id);
   const alertDefault = existing ? existing.target : Math.max(1, Math.round(p.basePrice * 0.95));
-  document.title = `${pfull(p)} | OreVision Materials`;
+  document.title = `${pfull(p)} | Ore Bridge`;
 
   const gradeRows = grades.map((g) => {
     const sel = g.id === p.id;
@@ -953,7 +953,7 @@ function printDatasheet(p) {
     h1{border-bottom:3px solid #0d3b66;color:#0d3b66;padding-bottom:8px;font-size:1.5em}h2{font-size:1.05em;margin-top:22px}
     td{padding:6px 12px;border:1px solid #ccc}td:first-child{width:38%;background:#f6f6f6}
     table{border-collapse:collapse;width:100%}.muted{color:#777;font-size:.85em}</style></head><body>
-    <h1>OreVision Materials — ${esc(p.name)}</h1>
+    <h1>Ore Bridge — ${esc(p.name)}</h1>
     <table>
       <tr><td>Form / condition</td><td>${esc(p.form) || "—"}</td></tr>
       <tr><td>Grade / headline purity</td><td>${chem(p.grade)}</td></tr>
@@ -1022,7 +1022,7 @@ function setFormNote(key, kind) {
 }
 
 function mailtoHref(f) {
-  const subject = `RFQ — ${f.company || f.name} — OreVision Materials`;
+  const subject = `RFQ — ${f.company || f.name} — Ore Bridge`;
   const body =
     `Name: ${f.name}\nCompany: ${f.company || "-"}\nEmail: ${f.email}\nPhone: ${f.phone || "-"}\n` +
     `Country: ${f.country}\nDestination port: ${f.port || "-"}\n` +
@@ -1108,7 +1108,7 @@ function csvText() {
 }
 
 function downloadCsv() {
-  downloadBlob(csvText(), "text/csv;charset=utf-8", `orevision-price-list-${LAST_UPDATED}.csv`);
+  downloadBlob(csvText(), "text/csv;charset=utf-8", `ore-bridge-price-list-${LAST_UPDATED}.csv`);
 }
 
 /* ---------- SEO: Product structured data ---------- */
@@ -1349,7 +1349,7 @@ function init() {
   const wa = String(SITE.WHATSAPP_NUMBER || "").replace(/\D/g, ""); // tolerate "+20 10…" formatting
   if (wa) {
     const fab = $("#whatsappFab");
-    fab.href = "https://wa.me/" + wa + "?text=" + encodeURIComponent("Hello OreVision, I would like a quote.");
+    fab.href = "https://wa.me/" + wa + "?text=" + encodeURIComponent("Hello Ore Bridge, I would like a quote.");
     fab.hidden = false;
   }
 

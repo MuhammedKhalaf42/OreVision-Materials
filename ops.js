@@ -1,5 +1,5 @@
 /* ============================================================
-   OreVision Materials — Operations console (ops.html)
+   Ore Bridge — Operations console (ops.html)
    Internal back office: RFQs & orders, inventory lots, shipments,
    customers, and publishing stock to the public price list.
 
@@ -502,7 +502,7 @@ function render() {
   $("#pageTitle").textContent = TABS[tab][0];
   $("#sampleBanner").hidden = !db.sample;
   $("#view").innerHTML = TABS[tab][1]();
-  document.title = `${TABS[tab][0]} · OreVision Operations`;
+  document.title = `${TABS[tab][0]} · Ore Bridge Operations`;
   const counts = { rfqs: db.rfqs.filter((r) => OPEN_RFQ.includes(r.status)).length, inventory: db.lots.filter((l) => l.status === "pending").length, shipments: db.shipments.filter((s) => s.status === "loading" || s.status === "sailed").length };
   Object.entries(counts).forEach(([k, n]) => { const el = document.querySelector(`[data-count="${k}"]`); if (el) { el.textContent = n; el.hidden = !n; } });
 }
@@ -514,7 +514,7 @@ function exportCsv(kind) {
     shipments: [["id", "Ref"], ["rfqId", "Contract"], ["productId", "Grade"], ["tonnes", "Tonnes"], ["mode", "Mode"], ["pol", "POL"], ["pod", "POD"], ["etd", "ETD"], ["eta", "ETA"], ["bl", "B/L"], ["status", "Status"], ["docs", "Documents ready"], ["notes", "Notes"]],
   }[kind];
   const val = (r, k) => (k === "productId" ? prodName(r[k]) : k === "docs" ? DOCS.filter(([d]) => r.docs[d]).map(([, l]) => l).join("; ") : r[k]);
-  downloadText(toCsv([cols.map((c) => c[1]), ...filtered(kind).map((r) => cols.map(([k]) => val(r, k)))]), `orevision-${kind}-${today()}.csv`, "text/csv;charset=utf-8");
+  downloadText(toCsv([cols.map((c) => c[1]), ...filtered(kind).map((r) => cols.map(([k]) => val(r, k)))]), `ore-bridge-${kind}-${today()}.csv`, "text/csv;charset=utf-8");
 }
 
 function init() {
@@ -559,7 +559,7 @@ function init() {
   $("#formDelete").addEventListener("click", deleteRecord);
 
   $("#exportBackup").addEventListener("click", () => {
-    downloadText(JSON.stringify(db, null, 2), `orevision-ops-backup-${today()}.json`, "application/json");
+    downloadText(JSON.stringify(db, null, 2), `ore-bridge-ops-backup-${today()}.json`, "application/json");
     toast("Backup downloaded — keep it somewhere safe.");
   });
   $("#importBackup").addEventListener("click", () => $("#importFile").click());
@@ -575,7 +575,7 @@ function init() {
       render();
       toast("Backup restored.");
     } catch (_) {
-      alert("That file is not a valid OreVision operations backup.");
+      alert("That file is not a valid Ore Bridge operations backup.");
     }
   });
   $("#loadSample").addEventListener("click", () => {

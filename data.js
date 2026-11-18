@@ -1,5 +1,5 @@
 /* ============================================================
-   OreVision Materials — Product & Market Data
+   Ore Bridge — Product & Market Data
    Product prices are indicative FOB, USD per metric tonne.
    Easiest way to edit prices and stock: open admin.html.
    ============================================================ */

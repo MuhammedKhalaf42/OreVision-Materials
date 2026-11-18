@@ -1,4 +1,6 @@
-# OreVision Materials
+# Ore Bridge
+
+Industrial minerals trading (formerly "OreVision Materials"), the trading arm of OreVision.
 
 A static marketplace website for AI-sorted mining materials — the selling counterpart to the
 [OreVision showcase site](https://mohammedmadany.github.io/OreVision-Web-Showcase/).
