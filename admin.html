@@ -93,6 +93,7 @@ PRODUCTS.forEach((p, i) => {
     inp.type = "number"; inp.step = step; inp.min = min;
     inp.value = p[field];
     inp.dataset.i = i; inp.dataset.f = field;
+    inp.setAttribute("aria-label", `${name.textContent} — ${{ basePrice: "price (USD/t)", stock: "stock (t)", moq: "MOQ (t)" }[field]}`);
     td.appendChild(inp);
     tr.appendChild(td);
   });

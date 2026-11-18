@@ -12,10 +12,6 @@ const store = {
   },
   setJson(key, val) { try { localStorage.setItem(key, JSON.stringify(val)); } catch (_) { /* storage unavailable */ } },
 };
-const session = {
-  get(key) { try { return sessionStorage.getItem(key); } catch (_) { return null; } },
-  set(key, val) { try { sessionStorage.setItem(key, val); } catch (_) { /* storage unavailable */ } },
-};
 
 /* ---------- state ---------- */
 let currency = store.str("ov-currency") === "EGP" ? "EGP" : "USD";
@@ -147,6 +143,9 @@ const gradesOf = (material) => PRODUCTS.filter((p) => p.material === material);
 const pageHref = (p) => `#/m/${encodeURIComponent(p.material)}/${encodeURIComponent(p.id)}`;
 const imgSrc = (p) => `images/${encodeURIComponent(p.image)}.jpg`;
 const isOut = (p) => p.stock < p.moq; // cannot fill even one minimum order
+const unitName = (u) => (u === "t" ? t("unit.t") : u); // "t" reads "طن" in Arabic
+/* A discount always reads "−7%": in Arabic text a bare "−7%" is mirrored to "7%−". */
+const pctOff = (pct) => `<bdi dir="ltr">−${pct}%</bdi>`;
 
 function clampQty(p, raw) {
   let n = Math.floor(Number(raw));
@@ -236,7 +235,7 @@ function artSVG(p) {
   </svg>`;
 }
 
-/* ---------- reference prices: ticker + table ---------- */
+/* ---------- market reference prices table ---------- */
 const benchPrice = (b) =>
   b.range ? String(b.range) : b.price.toLocaleString(undefined, { maximumFractionDigits: 2 });
 
@@ -358,7 +357,8 @@ function renderProducts() {
   const grid = $("#productGrid");
   if (!list.length) {
     grid.className = "product-grid";
-    grid.innerHTML = `<p class="cart-empty">${t("catalog.noMatch")}</p>`;
+    grid.innerHTML = `<div class="catalog-empty"><span>${esc(t("catalog.noMatch"))}</span>
+      <button type="button" class="btn-outline" data-clear-filters>${esc(t("catalog.clearFilters"))}</button></div>`;
     return;
   }
   if (view === "cards") {
@@ -368,6 +368,14 @@ function renderProducts() {
     grid.className = "spec-table-wrap";
     grid.innerHTML = tableHTML(list);
   }
+}
+
+function clearFilters() {
+  $("#searchInput").value = "";
+  $("#categoryFilter").value = "";
+  $("#inStockOnly").checked = false;
+  renderProducts();
+  $("#searchInput").focus();
 }
 
 function qtyControl(p) {
@@ -420,26 +428,26 @@ function cardHTML(p) {
     </a>
     <div class="card-top">
       <span class="c-flag">${flagName(p)}</span>
-      <span>${stockBadge(p)}${maxPct ? ` <span class="badge tier" title="${esc(t("card.volume"))} ${maxPct}%">-${maxPct}%</span>` : ""}</span>
+      <span>${stockBadge(p)}${maxPct ? ` <span class="badge tier">${esc(fill("card.tierBadge", { pct: maxPct }))}</span>` : ""}</span>
     </div>
     <h3><a href="${href}" class="mat-link">${esc(pname(p))}</a></h3>
     <p class="card-form">${esc(pform(p))}</p>
     <dl class="card-kv">
       <div><dt>${t("card.purity")}</dt><dd>${val(p.grade)}</dd></div>
-      <div><dt>${t("card.moq")}</dt><dd>${p.moq.toLocaleString()} ${esc(p.unit)}</dd></div>
-      <div><dt>${t("modal.stock")}</dt><dd>${p.stock.toLocaleString()} ${esc(p.unit)}</dd></div>
+      <div><dt>${t("card.moq")}</dt><dd>${p.moq.toLocaleString()} ${esc(unitName(p.unit))}</dd></div>
+      <div><dt>${t("modal.stock")}</dt><dd>${p.stock.toLocaleString()} ${esc(unitName(p.unit))}</dd></div>
     </dl>
     ${more ? `<a class="card-more" href="${href}">${esc(more)}</a>` : ""}
     ${sparkline(p.history)}
     <div class="price-row">
       <span class="price">${fmtPrice(p.basePrice)}</span>
-      <span class="per">/ ${esc(p.unit)} FOB</span>
+      <span class="per">/ ${esc(unitName(p.unit))} FOB</span>
     </div>
     <div class="card-actions">${qtyControl(p)}</div>
   </article>`;
 }
 
-/* ---------- cart (validated quantities, volume discounts, editable lines) ---------- */
+/* ---------- RFQ lines (`cart`): validated quantities, volume discounts, editable lines ---------- */
 function sanitizeCart(raw) {
   const out = [];
   const seen = new Set();
@@ -463,7 +471,7 @@ function setCartQty(p, rawQty) {
   if (existing) existing.qty = qty;
   else cart.push({ id: p.id, qty });
   saveCart();
-  if (capped) toast(fill("toast.maxStock", { n: p.stock.toLocaleString(), unit: p.unit }));
+  if (capped) toast(fill("toast.maxStock", { n: p.stock.toLocaleString(), unit: unitName(p.unit) }));
   return qty;
 }
 
@@ -542,9 +550,9 @@ function renderCart() {
       <td class="c-purity">${val(p.grade)}</td>
       <td class="num"><input class="qty" type="number" min="${p.moq}" max="${p.stock}" step="1" value="${c.qty}" data-line-qty="${id}" aria-label="${esc(t("calc.qty"))} — ${esc(pfull(p))}"><span class="c-sub">${esc(t("card.moq"))} ${p.moq.toLocaleString()}</span></td>
       <td class="num">${fmtPrice(p.basePrice)}</td>
-      <td class="num">${pct ? `−${pct}%` : "—"}</td>
+      <td class="num">${pct ? pctOff(pct) : "—"}</td>
       <td class="num"><strong>${fmtPrice(total)}</strong></td>
-      <td class="num"><button type="button" class="line-remove" data-remove="${id}" aria-label="${esc(t("drawer.remove"))} — ${esc(pfull(p))}" title="${esc(t("drawer.remove"))}">✕</button></td>
+      <td class="num"><button type="button" class="line-remove" data-remove="${id}" aria-label="${esc(t("rfq.remove"))} — ${esc(pfull(p))}" title="${esc(t("rfq.remove"))}">✕</button></td>
     </tr>`;
   }).join("");
   box.innerHTML = `<div class="rfq-head"><h3>${esc(t("rfq.linesTitle"))}</h3><button type="button" class="util-btn" data-clear-rfq>${esc(t("rfq.clear"))}</button></div>
@@ -552,7 +560,7 @@ function renderCart() {
       <thead><tr><th class="num">#</th><th>${esc(t("rfq.grade"))}</th><th>${esc(t("col.purity"))}</th><th class="num">${esc(t("rfq.qty"))}</th>
         <th class="num">${esc(fill("rfq.unit", { cur: currency }))}</th><th class="num">${esc(t("calc.discount"))}</th><th class="num">${esc(t("rfq.value"))}</th><th></th></tr></thead>
       <tbody>${rows}</tbody>
-      <tfoot><tr><td></td><td colspan="2">${esc(t("rfq.total"))}</td><td class="num"><strong>${tonnes.toLocaleString()} t</strong></td><td></td><td></td><td class="num"><strong>${fmtPrice(value)}</strong></td><td></td></tr></tfoot>
+      <tfoot><tr><td></td><td colspan="2">${esc(t("rfq.total"))}</td><td class="num"><strong>${tonnes.toLocaleString()} ${esc(unitName("t"))}</strong></td><td></td><td></td><td class="num"><strong>${fmtPrice(value)}</strong></td><td></td></tr></tfoot>
     </table></div>
     <p class="note">${esc(t("rfq.note"))}</p>`;
 }
@@ -614,13 +622,20 @@ function historyRows(p) {
 }
 
 /* ---------- order calculator ---------- */
+// "EXW mine site" → "EXW", "Free On Board (FOB)" → "FOB": the calculator keys its rules on the Incoterm code
+const incotermCode = (term) => {
+  const m = /\b(EXW|FCA|FAS|FOB|CFR|CIF|CPT|CIP|DAP|DPU|DDP)\b/i.exec(String(term || ""));
+  return m ? m[1].toUpperCase() : String(term || "").trim().slice(0, 3).toUpperCase();
+};
+
 function calcHTML(p, state) {
   const s = state || {};
   const regions = Object.keys(SITE.FREIGHT)
     .map((r) => `<option value="${esc(r)}"${s.region === r ? " selected" : ""}>${esc(lang === "ar" ? AR_FREIGHT[r] || r : r)}</option>`)
     .join("");
+  const term = s.term ?? SITE.INCOTERMS.find((x) => incotermCode(x) === "FOB") ?? SITE.INCOTERMS[0];
   const terms = SITE.INCOTERMS
-    .map((x, i) => `<option value="${i}"${String(s.term) === String(i) ? " selected" : ""}>${esc(lang === "ar" ? AR_INCOTERMS[x] || x : x)}</option>`)
+    .map((x) => `<option value="${esc(x)}"${x === term ? " selected" : ""}>${esc(lang === "ar" ? AR_INCOTERMS[x] || x : x)}</option>`)
     .join("");
   return `
   <h3 class="side-h">${t("calc.title")}</h3>
@@ -635,17 +650,17 @@ function calcHTML(p, state) {
 
 function runCalc(p) {
   const { qty } = clampQty(p, $("#calcQty").value);
-  const termIdx = Number($("#calcTerm").value) || 0;
-  const isCif = termIdx === 2;
+  const code = incotermCode($("#calcTerm").value);
+  const isCif = code === "CIF";
   $("#calcRegionWrap").hidden = !isCif;
   const pct = discountPct(p, qty);
   let unit = p.basePrice * (1 - pct / 100);
-  if (termIdx === 0) unit *= 0.95; // EXW: no port handling
+  if (code === "EXW") unit *= 0.95; // no inland haulage or port handling
   const freight = isCif ? (Number(SITE.FREIGHT[$("#calcRegion").value]) || 0) * qty : 0;
   const total = unit * qty + freight;
   $("#calcOut").innerHTML = `
     <div><span>${t("calc.qty")}</span><strong>${qty.toLocaleString()}</strong></div>
-    ${pct ? `<div><span>${t("calc.discount")}</span><strong>−${pct}%</strong></div>` : ""}
+    ${pct ? `<div><span>${t("calc.discount")}</span><strong>${pctOff(pct)}</strong></div>` : ""}
     ${isCif ? `<div><span>${t("calc.freight")}</span><strong>${fmtPrice(freight)}</strong></div>` : ""}
     <div class="calc-total"><span>${t("calc.total")}</span><strong>${fmtPrice(total)}</strong></div>`;
 }
@@ -660,14 +675,14 @@ function parseRoute(hash) {
 }
 
 const tiersText = (p) => TIERS.slice().reverse()
-  .map((x) => fill("page.tierText", { pct: x.pct, qty: (x.mult * p.moq).toLocaleString(), unit: p.unit }))
+  .map((x) => fill("page.tierText", { pct: x.pct, qty: (x.mult * p.moq).toLocaleString(), unit: unitName(p.unit) }))
   .join(", ") || "—";
 
 function pageSection(id, title, body) {
   return `<section class="mp-sec" id="mp-${id}"><h2>${esc(title)}</h2>${body}</section>`;
 }
 
-function mapHTML(info, txt) {
+function mapHTML(info) {
   const loc = info && info.location;
   if (!loc || !Number.isFinite(loc.lat) || !Number.isFinite(loc.lng)) return "";
   const { lat, lng } = loc;
@@ -728,7 +743,7 @@ function renderPage(keepState) {
 
   const loc = info && info.location;
   const origin = `<div class="mp-origin">
-      ${mapHTML(info, txt)}
+      ${mapHTML(info)}
       <table class="kv-table">
         <tr><th scope="row">${esc(t("page.country"))}</th><td>${c ? `${c.flag} ${esc(cname(c))}` : esc(p.country)}</td></tr>
         <tr><th scope="row">${esc(t("page.region"))}</th><td>${esc(txt.region || porigin(p))}</td></tr>
@@ -742,7 +757,7 @@ function renderPage(keepState) {
     `<li><strong>${esc(t(`page.step${n}t`))}</strong><span>${esc(t(`page.step${n}p`))}</span></li>`).join("");
 
   const faq = [
-    ["page.faq1q", fill("page.faq1a", { moq: p.moq.toLocaleString(), unit: p.unit, tiers: tiersText(p) })],
+    ["page.faq1q", fill("page.faq1a", { moq: p.moq.toLocaleString(), unit: unitName(p.unit), tiers: tiersText(p) })],
     ["page.faq2q", t("page.faq2a")],
     ["page.faq3q", t("page.faq3a")],
     ["page.faq4q", fill("page.faq4a", { days: SITE.QUOTE_VALID_DAYS })],
@@ -759,7 +774,7 @@ function renderPage(keepState) {
       return `<a class="rel-card" href="${pageHref(g)}">
         <img src="${imgSrc(g)}" alt="" loading="lazy" onerror="this.remove()">
         <span class="rel-name">${esc(pname(g))}</span>
-        <span class="rel-sub">${gs.length > 1 ? esc(fill("card.gradesCount", { n: gs.length })) + " · " : ""}${fmtPrice(from)}+ / t</span>
+        <span class="rel-sub">${gs.length > 1 ? esc(fill("card.gradesCount", { n: gs.length })) + " · " : ""}${fmtPrice(from)}+ / ${esc(unitName("t"))}</span>
       </a>`;
     }).join("");
 
@@ -782,9 +797,9 @@ function renderPage(keepState) {
         <dl class="mp-facts">
           <div><dt>${esc(t("col.purity"))}</dt><dd>${val(p.grade)}</dd></div>
           <div><dt>${esc(t("page.form"))}</dt><dd>${esc(pform(p)) || "—"}</dd></div>
-          <div><dt>${esc(t("modal.price"))}</dt><dd>${fmtPrice(p.basePrice)} / ${esc(p.unit)} FOB</dd></div>
-          <div><dt>${esc(fill("page.stockAsOf", { date: fmtDate(LAST_UPDATED) }))}</dt><dd>${out ? esc(t("badge.out")) : `${p.stock.toLocaleString()} ${esc(p.unit)}`}</dd></div>
-          <div><dt>${esc(t("modal.moq"))}</dt><dd>${p.moq.toLocaleString()} ${esc(p.unit)}</dd></div>
+          <div><dt>${esc(t("modal.price"))}</dt><dd>${fmtPrice(p.basePrice)} / ${esc(unitName(p.unit))} FOB</dd></div>
+          <div><dt>${esc(fill("page.stockAsOf", { date: fmtDate(LAST_UPDATED) }))}</dt><dd>${out ? esc(t("badge.out")) : `${p.stock.toLocaleString()} ${esc(unitName(p.unit))}`}</dd></div>
+          <div><dt>${esc(t("modal.moq"))}</dt><dd>${p.moq.toLocaleString()} ${esc(unitName(p.unit))}</dd></div>
           <div><dt>${esc(t("page.hs"))}</dt><dd>${info ? `<bdi dir="ltr">${esc(info.hs)}</bdi>` : "—"}</dd></div>
         </dl>
       </div>
@@ -833,8 +848,8 @@ function renderPage(keepState) {
 
       <aside class="mp-side">
         <div class="side-box">
-          <div class="side-price"><strong>${fmtPrice(p.basePrice)}</strong><span>/ ${esc(p.unit)} FOB</span></div>
-          <p class="side-stock">${stockBadge(p)} <span class="muted">${out ? "" : `${p.stock.toLocaleString()} ${esc(p.unit)} · `}${esc(fill("modal.asOf", { date: fmtDate(LAST_UPDATED) }))}</span></p>
+          <div class="side-price"><strong>${fmtPrice(p.basePrice)}</strong><span>/ ${esc(unitName(p.unit))} FOB</span></div>
+          <p class="side-stock">${stockBadge(p)} <span class="muted">${out ? "" : `${p.stock.toLocaleString()} ${esc(unitName(p.unit))} · `}${esc(fill("modal.asOf", { date: fmtDate(LAST_UPDATED) }))}</span></p>
           ${out ? "" : calcHTML(p, state)}
           <div class="side-actions">
             <button type="button" class="btn-primary" data-act="${out ? "notify" : "add"}">${esc(out ? t("modal.notifyBtn") : cart.some((c) => c.id === p.id) ? t("rfq.update") : t("page.buy"))}</button>
@@ -865,7 +880,7 @@ function renderPage(keepState) {
     $("#calcQty").addEventListener("change", (e) => {
       const { qty, capped } = clampQty(p, e.target.value);
       e.target.value = qty;
-      if (capped) toast(fill("toast.maxStock", { n: p.stock.toLocaleString(), unit: p.unit }));
+      if (capped) toast(fill("toast.maxStock", { n: p.stock.toLocaleString(), unit: unitName(p.unit) }));
       runCalc(p);
     });
     runCalc(p);
@@ -935,7 +950,7 @@ function printDatasheet(p) {
   const specs = p.specs.map(([k, v]) => `<tr><td>${chem(k)}</td><td>${esc(v)}</td></tr>`).join("");
   w.document.write(`<!doctype html><html><head><meta charset="utf-8"><title>${esc(pfullEn(p))} — Datasheet</title>
     <style>body{font-family:Arial,sans-serif;max-width:720px;margin:40px auto;color:#222}
-    h1{border-bottom:3px solid #f5a623;padding-bottom:8px;font-size:1.5em}h2{font-size:1.05em;margin-top:22px}
+    h1{border-bottom:3px solid #0d3b66;color:#0d3b66;padding-bottom:8px;font-size:1.5em}h2{font-size:1.05em;margin-top:22px}
     td{padding:6px 12px;border:1px solid #ccc}td:first-child{width:38%;background:#f6f6f6}
     table{border-collapse:collapse;width:100%}.muted{color:#777;font-size:.85em}</style></head><body>
     <h1>OreVision Materials — ${esc(p.name)}</h1>
@@ -989,7 +1004,7 @@ function checkAlerts() {
 /* ---------- inquiry form ---------- */
 function goToContact(message) {
   const msg = document.querySelector('[name="message"]');
-  if (message != null) msg.value = message;
+  if (message && !msg.value.includes(message)) msg.value = msg.value.trim() ? `${msg.value.trim()}\n\n${message}` : message;
   document.getElementById("contact").scrollIntoView({ behavior: "smooth" });
   msg.focus({ preventScroll: true });
 }
@@ -1125,14 +1140,12 @@ function applyI18n() {
   document.documentElement.lang = lang;
   document.documentElement.dir = lang === "ar" ? "rtl" : "ltr";
   document.body.classList.toggle("ar", lang === "ar");
-  document.querySelectorAll("[data-i18n]").forEach((el) => {
-    const v = t(el.dataset.i18n);
-    if (v.includes("<br>")) el.innerHTML = v; else el.textContent = v;
-  });
+  document.querySelectorAll("[data-i18n]").forEach((el) => { el.textContent = t(el.dataset.i18n); }); // text only, never HTML
   document.querySelectorAll("[data-i18n-ph]").forEach((el) => {
     el.placeholder = t(el.dataset.i18nPh);
   });
   $("#langToggle").textContent = lang === "ar" ? "EN" : "عربي";
+  $("#themeToggle").title = $("#themeToggle").textContent; // tooltip follows the language
   $("#lastUpdated").textContent = fmtDate(LAST_UPDATED);
   $("#lastUpdatedTop").textContent = fmtDate(LAST_UPDATED);
   const inc = $("#formIncoterm");
@@ -1185,7 +1198,9 @@ function init() {
   // theme
   const setTheme = (dark) => {
     document.documentElement.dataset.theme = dark ? "dark" : "light";
-    $("#themeToggle").textContent = dark ? "Light" : "Dark";
+    $("#themeToggle").dataset.i18n = dark ? "theme.light" : "theme.dark";
+    $("#themeToggle").textContent = t($("#themeToggle").dataset.i18n);
+    $("#themeToggle").title = t($("#themeToggle").dataset.i18n);
   };
   setTheme(store.str("ov-theme") === "dark");
   $("#themeToggle").addEventListener("click", () => {
@@ -1255,6 +1270,7 @@ function init() {
       if (again) again.focus();
       return;
     }
+    if (e.target.closest("[data-clear-filters]")) { clearFilters(); return; }
     const notify = e.target.closest(".btn-notify");
     if (notify) {
       const p = byId(notify.dataset.id);
@@ -1325,6 +1341,8 @@ function init() {
   if (SITE.CONTACT_EMAIL) {
     $("#footerEmail").textContent = SITE.CONTACT_EMAIL;
     $("#footerEmail").href = "mailto:" + SITE.CONTACT_EMAIL;
+  } else {
+    $("#footerEmail").remove(); // an empty link is an invisible tab stop
   }
 
   // WhatsApp button (shown only when a number is configured in data.js)

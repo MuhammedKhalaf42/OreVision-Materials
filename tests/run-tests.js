@@ -95,6 +95,11 @@ console.log("Data integrity");
     eq(run("Object.keys(I18N.en).filter(k => !(k in I18N.ar))"), [], "missing in ar:");
     eq(run("Object.keys(I18N.ar).filter(k => !(k in I18N.en))"), [], "missing in en:");
   });
+  test("every translation key is used by the site (no leftovers from removed features)", () => {
+    const src = read("app.js") + read("index.html");
+    const built = [/^page\.step\d[tp]$/, /^page\.faq\d[qa]$/]; // keys assembled in a loop
+    eq(run("Object.keys(I18N.en)").filter((k) => !src.includes(`"${k}"`) && !built.some((r) => r.test(k))), []);
+  });
   test("every product's photo file exists", () => {
     const ids = run("PRODUCTS.map(p => p.image)");
     eq(ids.filter((id) => !fs.existsSync(path.join(root, "images", id + ".jpg"))), []);
@@ -207,6 +212,17 @@ console.log("Formatting and escaping");
     const html = run("historyRows({history: [{date: '2026-01-01', price: 100}, {date: '2026-02-01', price: 110}], unit: 't'})");
     if (!/\+10\.0%/.test(html)) throw new Error("missing +10.0% in " + html);
     if (html.indexOf("110") > html.indexOf("First recorded")) throw new Error("newest row should come first");
+  });
+  test("Arabic shows the tonne unit in Arabic; discounts stay left-to-right", () => {
+    eq(run("unitName('t')"), "t");
+    eq(run("lang = 'ar'; const u = unitName('t'); lang = 'en'; u"), "طن");
+    eq(run("unitName('kg')"), "kg");
+    eq(run("pctOff(7)"), '<bdi dir="ltr">−7%</bdi>');
+  });
+  test("calculator recognises delivery terms by Incoterm code, whatever their order or wording", () => {
+    eq(run("SITE.INCOTERMS.map(incotermCode)"), ["EXW", "FOB", "CIF"]);
+    eq(run("incotermCode(' cif Rotterdam')"), "CIF");
+    eq(run("incotermCode(undefined)"), "");
   });
   test("sparkline needs two real prices", () => {
     eq(run("sparkline([{date: '2026-01-01', price: 5}])"), "");
