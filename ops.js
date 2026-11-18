@@ -358,9 +358,9 @@ function renderDashboard() {
     </section>
     <section class="panel">
       <h2>Open RFQs <a class="link" data-tab="rfqs" href="#rfqs">All RFQs →</a></h2>
-      ${openList.length ? `<table class="ops-table"><thead><tr><th>Ref</th><th>Company</th><th>Grade</th><th class="num">Qty t</th><th class="num">Value</th><th>Status</th></tr></thead><tbody>
+      ${openList.length ? `<div class="table-scroll"><table class="ops-table"><thead><tr><th>Ref</th><th>Company</th><th>Grade</th><th class="num">Qty t</th><th class="num">Value</th><th>Status</th></tr></thead><tbody>
         ${openList.map((r) => `<tr><td><button class="ref" data-edit="rfqs" data-id="${esc(r.id)}">${esc(r.id)}</button></td><td>${esc(r.company)}</td><td>${esc(prodName(r.productId))}</td><td class="num">${t0(r.qty)}</td><td class="num">${usd(rfqValue(r, PRODUCTS))}</td><td>${pill("rfq", r.status)}</td></tr>`).join("")}
-      </tbody></table>` : `<p class="empty">No open RFQs.</p>`}
+      </tbody></table></div>` : `<p class="empty">No open RFQs.</p>`}
     </section>
   </div>
   <section class="panel">
@@ -374,13 +374,13 @@ function renderDashboard() {
 }
 
 function stockTable(stock) {
-  return `<table class="ops-table"><thead><tr><th>Grade</th><th class="num">Lots</th><th class="num">Released t</th><th class="num">Pending lab t</th><th class="num">Committed t</th><th class="num">Available t</th><th class="num">On website t</th><th></th></tr></thead><tbody>
+  return `<div class="table-scroll"><table class="ops-table"><thead><tr><th>Grade</th><th class="num">Lots</th><th class="num">Released t</th><th class="num">Pending lab t</th><th class="num">Committed t</th><th class="num">Available t</th><th class="num">On website t</th><th></th></tr></thead><tbody>
     ${stock.map((s) => {
       const diff = s.lots && Math.floor(s.available) !== s.website;
       return `<tr class="${s.short ? "row-bad" : ""}"><td>${esc(prodName(s.id))}</td><td class="num">${s.lots}</td><td class="num">${t0(s.released)}</td><td class="num">${t0(s.pending)}</td><td class="num">${t0(s.committed)}</td><td class="num"><strong>${t0(s.available)}</strong></td><td class="num">${t0(s.website)}</td>
       <td>${s.short ? `<span class="pill pill-bad">Short ${t0(s.short)} t</span>` : diff ? `<span class="pill pill-warn">Website differs</span>` : s.lots ? `<span class="pill pill-ok">In sync</span>` : ""}</td></tr>`;
     }).join("")}
-  </tbody></table>`;
+  </tbody></table></div>`;
 }
 
 function toolbar(kind, statuses, addLabel) {
@@ -472,9 +472,9 @@ function renderWebsite() {
   const changes = stock.filter((s) => Math.floor(s.available) !== s.website);
   return `<section class="panel"><h2>Publish stock to the website</h2>
     <p>The public price list shows the stock in <code>data.js</code>. This takes <strong>available</strong> tonnes (released lots minus committed contracts) for every grade that has lots, and keeps the current figure for grades with no lots recorded.</p>
-    ${stock.length ? `<table class="ops-table"><thead><tr><th>Grade</th><th class="num">On website t</th><th class="num">Will publish t</th><th></th></tr></thead><tbody>
+    ${stock.length ? `<div class="table-scroll"><table class="ops-table"><thead><tr><th>Grade</th><th class="num">On website t</th><th class="num">Will publish t</th><th></th></tr></thead><tbody>
       ${stock.map((s) => `<tr><td>${esc(prodName(s.id))}</td><td class="num">${t0(s.website)}</td><td class="num"><strong>${t0(Math.floor(s.available))}</strong></td><td>${Math.floor(s.available) !== s.website ? `<span class="pill pill-warn">Changes</span>` : `<span class="pill pill-ok">Same</span>`}</td></tr>`).join("")}
-    </tbody></table>` : `<p class="empty">Record lots in Inventory first.</p>`}
+    </tbody></table></div>` : `<p class="empty">Record lots in Inventory first.</p>`}
     <div class="publish-row">
       <button class="btn-primary" id="publishStock" type="button"${stock.length ? "" : " disabled"}>Download data.js with ${changes.length} stock change(s)</button>
       <a class="btn-outline" href="admin.html">Edit prices &amp; contact settings →</a>

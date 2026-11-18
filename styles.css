@@ -446,11 +446,11 @@ body.page-mode #why, body.page-mode #about { display: none; }
   .main-nav a:last-child { border-bottom: none; }
   .nav-toggle { display: inline-flex; }
   .header-actions { margin-inline-start: auto; }
-  .mp-grid { grid-template-columns: 1fr; }
+  /* minmax(0, 1fr), not 1fr: a plain 1fr track grows to the grades table's full width and
+     makes phones zoom the whole page out; with 0 the table scrolls inside its own frame. */
+  .mp-grid, .mp-head, .mp-origin, .mp-two { grid-template-columns: minmax(0, 1fr); }
   .mp-side { position: static; order: -1; }
-  .mp-head { grid-template-columns: 1fr; }
   .mp-photo { height: 160px; }
-  .mp-origin, .mp-two { grid-template-columns: 1fr; }
   .mp-steps { grid-template-columns: 1fr; }
   .mp-steps li { border-inline-start: none; border-top: 1px solid var(--border); }
   .mp-steps li:first-child { border-top: none; }
