@@ -1,5 +1,5 @@
 /* ============================================================
-   Ore Bridge — material pages content (English / Arabic)
+   OreBridge Minerals — material pages content (English / Arabic)
    One entry per material (the `material` key in data.js). All grades
    of a material share this page.
 
@@ -93,14 +93,14 @@ const MATERIALS = {
     location: { lat: 26.0, lng: 33.5, portKm: 120 },
     en: {
       color: "Colorless to milky white",
-      summary: "High-purity vein quartz, hand-picked and AI-sorted to remove iron-stained and mixed pieces before it ships, for markets where trace impurities matter.",
+      summary: "High-purity vein quartz, hand-picked and sorted to remove iron-stained and mixed pieces before it ships, for markets where trace impurities matter.",
       geology: "Formed as hydrothermal quartz veins in the basement rocks of the Eastern Desert, where silica-rich fluids filled fractures and crystallized almost pure.",
       region: "Central Eastern Desert", port: "Safaga (Red Sea)",
       apps: ["Specialty and solar glass", "Silicon metal and ferrosilicon", "Quartz crucibles and fused silica", "Electronics fillers"],
     },
     ar: {
       color: "شفاف إلى أبيض حليبي",
-      summary: "كوارتز عروق عالي النقاء، يُنتقى يدوياً ويُفرز بالذكاء الاصطناعي لإزالة القطع الملوثة بالحديد أو المختلطة قبل الشحن، للأسواق التي تهمها الشوائب الدقيقة.",
+      summary: "كوارتز عروق عالي النقاء، يُنتقى ويُفرز يدوياً لإزالة القطع الملوثة بالحديد أو المختلطة قبل الشحن، للأسواق التي تهمها الشوائب الدقيقة.",
       geology: "تكوّن على هيئة عروق كوارتز حرمائية في صخور القاعدة بالصحراء الشرقية، حيث ملأت محاليل غنية بالسيليكا الشقوق وتبلورت بنقاء شبه تام.",
       region: "وسط الصحراء الشرقية", port: "سفاجا (البحر الأحمر)",
       apps: ["الزجاج الخاص وزجاج الطاقة الشمسية", "السيليكون المعدني والفيروسيليكون", "بوتقات الكوارتز والسيليكا المصهورة", "حشوات الإلكترونيات"],
@@ -322,7 +322,7 @@ Object.assign(I18N.en, {
   "page.apps": "Applications",
   "page.process": "From mine to port",
   "page.step1t": "Mining", "page.step1p": "Open-pit extraction at the deposit.",
-  "page.step2t": "AI sorting", "page.step2p": "Computer vision rejects off-grade rock before processing.",
+  "page.step2t": "Selection & screening", "page.step2p": "Off-grade material is rejected at the quarry before processing.",
   "page.step3t": "Processing", "page.step3p": "Crushing, milling and screening to the grade you order.",
   "page.step4t": "Lab check", "page.step4p": "Each lot is sampled and tested; the certificate travels with it.",
   "page.step5t": "Packing & port", "page.step5p": "Bulk, big bags or 25 kg bags, delivered to the export port.",
@@ -331,7 +331,7 @@ Object.assign(I18N.en, {
   "page.faq1q": "What is the minimum order?",
   "page.faq1a": "The minimum order for this grade is {moq} {unit}. Volume discounts apply automatically: {tiers}.",
   "page.faq2q": "How is the purity guaranteed?",
-  "page.faq2a": "Every lot passes our AI sorting line and is tested in the lab. You receive a certificate of analysis with the formal quote, and independent SGS inspection is available on request.",
+  "page.faq2a": "Every lot is sampled at source and tested in the laboratory. You receive a certificate of analysis with the formal quote, and independent SGS inspection is available on request.",
   "page.faq3q": "Can I get a sample?",
   "page.faq3a": "Yes. Use “Request a sample” and tell us your destination; we confirm the sample size and shipping with you.",
   "page.faq4q": "How long is a quote valid?",
@@ -361,6 +361,9 @@ Object.assign(I18N.en, {
   "page.mapTitle": "Map of the deposit region",
   "util.staff": "Staff · Operations",
   "footer.staff": "Staff area: Operations console",
+  "card.core": "Core material",
+  "footer.location": "Aswan, Egypt",
+  "footer.facebook": "Facebook page",
 });
 
 Object.assign(I18N.ar, {
@@ -408,7 +411,7 @@ Object.assign(I18N.ar, {
   "page.apps": "الاستخدامات",
   "page.process": "من المنجم إلى الميناء",
   "page.step1t": "التعدين", "page.step1p": "استخراج مكشوف من موقع الرواسب.",
-  "page.step2t": "الفرز بالذكاء الاصطناعي", "page.step2p": "الرؤية الحاسوبية تستبعد الصخور خارج الدرجة قبل المعالجة.",
+  "page.step2t": "الانتقاء والنخل", "page.step2p": "تُستبعد الخامة خارج الدرجة في المحجر قبل المعالجة.",
   "page.step3t": "المعالجة", "page.step3p": "تكسير وطحن ونخل حسب الدرجة التي تطلبها.",
   "page.step4t": "فحص المعمل", "page.step4p": "تؤخذ عينة من كل شحنة وتُختبر، وترافقها الشهادة.",
   "page.step5t": "التعبئة والميناء", "page.step5p": "سائب أو أكياس جامبو أو أكياس 25 كجم، تُسلَّم إلى ميناء التصدير.",
@@ -417,7 +420,7 @@ Object.assign(I18N.ar, {
   "page.faq1q": "ما الحد الأدنى للطلب؟",
   "page.faq1a": "الحد الأدنى لهذه الدرجة {moq} {unit}. وتُطبَّق خصومات الكمية تلقائياً: {tiers}.",
   "page.faq2q": "كيف يُضمن النقاء؟",
-  "page.faq2a": "تمر كل شحنة على خط الفرز بالذكاء الاصطناعي وتُختبر في المعمل. تستلم شهادة تحليل مع عرض السعر الرسمي، ويتوفر فحص مستقل من SGS عند الطلب.",
+  "page.faq2a": "تؤخذ عينة من كل شحنة عند المصدر وتُختبر في المعمل. تستلم شهادة تحليل مع عرض السعر الرسمي، ويتوفر فحص مستقل من SGS عند الطلب.",
   "page.faq3q": "هل يمكنني الحصول على عينة؟",
   "page.faq3a": "نعم. استخدم «اطلب عينة» وأخبرنا بوجهتك، وسنتفق معك على حجم العينة وطريقة شحنها.",
   "page.faq4q": "ما مدة صلاحية عرض السعر؟",
@@ -447,4 +450,7 @@ Object.assign(I18N.ar, {
   "page.mapTitle": "خريطة منطقة الرواسب",
   "util.staff": "الموظفون · العمليات",
   "footer.staff": "منطقة الموظفين: لوحة العمليات",
+  "card.core": "خامة رئيسية",
+  "footer.location": "أسوان، مصر",
+  "footer.facebook": "صفحة فيسبوك",
 });

@@ -1,5 +1,5 @@
 /* ============================================================
-   Ore Bridge — Product & Market Data
+   OreBridge Minerals — Product & Market Data
    Product prices are indicative FOB, USD per metric tonne.
    Easiest way to edit prices and stock: open admin.html.
    ============================================================ */
@@ -35,6 +35,9 @@ const SITE = {
     "Americas": 38,
   },
   /* Volume discounts: ordered largest first. qty >= mult × MOQ → pct off */
+  /* Core materials (as on the OreBridge Facebook page): listed first and
+     marked "Core material" in the price list. Use the `material` keys. */
+  CORE_MATERIALS: ["feldspar-k", "feldspar-na", "quartz-hp", "iron-oxide", "phosphate"],
   DISCOUNT_TIERS: [
     { mult: 20, pct: 7 },
     { mult: 5, pct: 3 },
@@ -212,7 +215,7 @@ const PRODUCTS = [
     id: "quartz-hp",
     material: "quartz-hp",
     name: "High-Purity Quartz",
-    form: "Lump, 20–100 mm, AI-sorted",
+    form: "Lump, 20–100 mm, hand-sorted",
     category: "Industrial Minerals",
     country: "EG",
     grade: "SiO2 ≥ 99.5%",

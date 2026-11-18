@@ -1,4 +1,4 @@
-/* Logic tests for Ore Bridge.  Run:  node tests/run-tests.js
+/* Logic tests for OreBridge Minerals.  Run:  node tests/run-tests.js
    Loads data.js, i18n.js, materials.js and app.js into a sandbox with a stub browser
    environment and checks the pure logic (no real DOM needed).            */
 "use strict";
@@ -234,6 +234,21 @@ console.log("Formatting and escaping");
   });
 }
 
+
+console.log("Business model");
+{
+  const { run } = makeSandbox();
+  run("normalizeData()");
+  test("core materials (feldspar, quartz, iron oxide, phosphate) exist and are marked core", () => {
+    eq(run("SITE.CORE_MATERIALS.filter(m => !PRODUCTS.some(p => p.material === m))"), []);
+    eq(run("PRODUCTS.filter(isCore).map(p => p.material).filter((m, i, a) => a.indexOf(m) === i).sort()"),
+      ["feldspar-k", "feldspar-na", "iron-oxide", "phosphate", "quartz-hp"]);
+  });
+  test("no AI-sorting claims remain in the catalog or translations", () => {
+    const text = read("i18n.js") + read("materials.js") + read("data.js") + read("index.html");
+    eq((text.match(/AI[- ]sort|computer[- ]vision|بالذكاء الاصطناعي/gi) || []), []);
+  });
+}
 
 console.log("Operations console");
 {

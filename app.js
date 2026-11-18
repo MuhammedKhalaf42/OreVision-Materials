@@ -1,4 +1,4 @@
-/* ============ Ore Bridge — app logic ============ */
+/* ============ OreBridge Minerals — app logic ============ */
 "use strict";
 
 /* ---------- safe storage (private mode / blocked storage / corrupt values never break the page) ---------- */
@@ -24,7 +24,7 @@ let alerts = [];
 let usdToEgp = Number(USD_TO_EGP) > 0 ? Number(USD_TO_EGP) : 1;
 let TIERS = [];
 let pageRoute = null; // { material, id } while a material page is open
-let baseTitle = "Ore Bridge";
+let baseTitle = "OreBridge Minerals";
 
 const $ = (sel) => document.querySelector(sel);
 const t = (key) => (I18N[lang] && I18N[lang][key]) || I18N.en[key] || key;
@@ -143,6 +143,7 @@ const gradesOf = (material) => PRODUCTS.filter((p) => p.material === material);
 const pageHref = (p) => `#/m/${encodeURIComponent(p.material)}/${encodeURIComponent(p.id)}`;
 const imgSrc = (p) => `images/${encodeURIComponent(p.image)}.jpg`;
 const isOut = (p) => p.stock < p.moq; // cannot fill even one minimum order
+const isCore = (p) => Array.isArray(SITE.CORE_MATERIALS) && SITE.CORE_MATERIALS.includes(p.material);
 const unitName = (u) => (u === "t" ? t("unit.t") : u); // "t" reads "طن" in Arabic
 /* A discount always reads "−7%": in Arabic text a bare "−7%" is mirrored to "7%−". */
 const pctOff = (pct) => `<bdi dir="ltr">−${pct}%</bdi>`;
@@ -324,7 +325,7 @@ function filteredProducts() {
     return true;
   });
   const cmp = {
-    name: (a, b) => pname(a).localeCompare(pname(b), lang) || a.basePrice - b.basePrice,
+    name: (a, b) => (isCore(b) - isCore(a)) * sortDir || pname(a).localeCompare(pname(b), lang) || a.basePrice - b.basePrice, // core materials first
     form: (a, b) => pform(a).localeCompare(pform(b), lang),
     purity: (a, b) => a.grade.localeCompare(b.grade, "en", { numeric: true }),
     origin: (a, b) => porigin(a).localeCompare(porigin(b), lang),
@@ -395,7 +396,7 @@ function tableHTML(list) {
   const rows = list.map((p) => {
     const href = pageHref(p);
     return `<tr class="${isOut(p) ? "row-out" : ""}">
-      <td class="c-mat"><a href="${href}" class="mat-link">${esc(pname(p))}</a><span class="c-cat">${esc(pcat(p.category))}</span></td>
+      <td class="c-mat"><a href="${href}" class="mat-link">${esc(pname(p))}</a><span class="c-cat">${isCore(p) ? `<span class="c-core">${esc(t("card.core"))}</span> · ` : ""}${esc(pcat(p.category))}</span></td>
       <td>${esc(pform(p))}</td>
       <td class="c-purity">${val(p.grade)}</td>
       <td><span class="c-flag">${flagName(p)}</span>${regionOnly(p) ? `<span class="c-sub">${esc(regionOnly(p))}</span>` : ""}</td>
@@ -717,7 +718,7 @@ function renderPage(keepState) {
   const bench = info && info.benchmark ? BENCHMARKS.find((b) => b.name === info.benchmark) : null;
   const existing = alerts.find((a) => a.id === p.id);
   const alertDefault = existing ? existing.target : Math.max(1, Math.round(p.basePrice * 0.95));
-  document.title = `${pfull(p)} | Ore Bridge`;
+  document.title = `${pfull(p)} | OreBridge Minerals`;
 
   const gradeRows = grades.map((g) => {
     const sel = g.id === p.id;
@@ -953,7 +954,7 @@ function printDatasheet(p) {
     h1{border-bottom:3px solid #0d3b66;color:#0d3b66;padding-bottom:8px;font-size:1.5em}h2{font-size:1.05em;margin-top:22px}
     td{padding:6px 12px;border:1px solid #ccc}td:first-child{width:38%;background:#f6f6f6}
     table{border-collapse:collapse;width:100%}.muted{color:#777;font-size:.85em}</style></head><body>
-    <h1>Ore Bridge — ${esc(p.name)}</h1>
+    <h1>OreBridge Minerals — ${esc(p.name)}</h1>
     <table>
       <tr><td>Form / condition</td><td>${esc(p.form) || "—"}</td></tr>
       <tr><td>Grade / headline purity</td><td>${chem(p.grade)}</td></tr>
@@ -1022,7 +1023,7 @@ function setFormNote(key, kind) {
 }
 
 function mailtoHref(f) {
-  const subject = `RFQ — ${f.company || f.name} — Ore Bridge`;
+  const subject = `RFQ — ${f.company || f.name} — OreBridge Minerals`;
   const body =
     `Name: ${f.name}\nCompany: ${f.company || "-"}\nEmail: ${f.email}\nPhone: ${f.phone || "-"}\n` +
     `Country: ${f.country}\nDestination port: ${f.port || "-"}\n` +
@@ -1108,7 +1109,7 @@ function csvText() {
 }
 
 function downloadCsv() {
-  downloadBlob(csvText(), "text/csv;charset=utf-8", `ore-bridge-price-list-${LAST_UPDATED}.csv`);
+  downloadBlob(csvText(), "text/csv;charset=utf-8", `orebridge-price-list-${LAST_UPDATED}.csv`);
 }
 
 /* ---------- SEO: Product structured data ---------- */
@@ -1349,7 +1350,7 @@ function init() {
   const wa = String(SITE.WHATSAPP_NUMBER || "").replace(/\D/g, ""); // tolerate "+20 10…" formatting
   if (wa) {
     const fab = $("#whatsappFab");
-    fab.href = "https://wa.me/" + wa + "?text=" + encodeURIComponent("Hello Ore Bridge, I would like a quote.");
+    fab.href = "https://wa.me/" + wa + "?text=" + encodeURIComponent("Hello OreBridge Minerals, I would like a quote.");
     fab.hidden = false;
   }
 

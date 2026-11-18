@@ -1,6 +1,6 @@
-# Ore Bridge
+# OreBridge Minerals
 
-Industrial minerals trading (formerly "OreVision Materials"), the trading arm of OreVision.
+Aswan-based direct supplier of industrial minerals from Egyptian mines & quarries: feldspar, quartz, iron oxide, phosphate and other raw materials ([Facebook page](https://www.facebook.com/profile.php?id=61591079052674)). Core materials are set in `SITE.CORE_MATERIALS` in `data.js`.
 
 A static marketplace website for AI-sorted mining materials — the selling counterpart to the
 [OreVision showcase site](https://mohammedmadany.github.io/OreVision-Web-Showcase/).

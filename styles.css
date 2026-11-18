@@ -1,4 +1,4 @@
-/* ============ Ore Bridge — corporate B2B design system ============
+/* ============ OreBridge Minerals — corporate B2B design system ============
    Light by default; dark via [data-theme="dark"]. Navy primary, neutral greys,
    square-ish corners, tabular figures, no decorative motion.               */
 :root {
@@ -491,3 +491,8 @@ body.page-mode #why, body.page-mode #about { display: none; }
   .mp-facts div:nth-child(even) { border-inline-start: 1px solid var(--border); }
   .footer-inner { grid-template-columns: 1fr; gap: 18px; }
 }
+
+/* Company logo (from the OreBridge Minerals Facebook page) */
+img.brand-mark { width: 34px; height: 34px; display: block; border-radius: 2px; }
+.footer-logo { width: 40px; height: 40px; vertical-align: middle; margin-inline-end: 8px; display: inline-block !important; border-radius: 2px; }
+.c-core { color: var(--primary); font-weight: 600; }
