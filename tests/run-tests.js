@@ -208,6 +208,17 @@ console.log("Formatting and escaping");
     if (!/\+10\.0%/.test(html)) throw new Error("missing +10.0% in " + html);
     if (html.indexOf("110") > html.indexOf("First recorded")) throw new Error("newest row should come first");
   });
+  test("Arabic shows the tonne unit in Arabic; discounts stay left-to-right", () => {
+    eq(run("unitName('t')"), "t");
+    eq(run("lang = 'ar'; const u = unitName('t'); lang = 'en'; u"), "طن");
+    eq(run("unitName('kg')"), "kg");
+    eq(run("pctOff(7)"), '<bdi dir="ltr">−7%</bdi>');
+  });
+  test("calculator recognises delivery terms by Incoterm code, whatever their order or wording", () => {
+    eq(run("SITE.INCOTERMS.map(incotermCode)"), ["EXW", "FOB", "CIF"]);
+    eq(run("incotermCode(' cif Rotterdam')"), "CIF");
+    eq(run("incotermCode(undefined)"), "");
+  });
   test("sparkline needs two real prices", () => {
     eq(run("sparkline([{date: '2026-01-01', price: 5}])"), "");
   });

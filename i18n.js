@@ -38,7 +38,6 @@ const I18N = {
     "card.available": "available",
     "card.add": "Include",
     "card.notify": "Notify me",
-    "card.volume": "Volume discounts up to",
     "market.title": "Market Reference Data",
     "market.sub": "Reference prices for iron ore, iron oxide and our other materials, each with its date and source. Indicative only — contract prices are confirmed per quote.",
     "market.benchmark": "Material",
@@ -143,6 +142,10 @@ const I18N = {
     "rfq.total": "Total",
     "rfq.note": "Indicative values at list price. These lines are sent with your RFQ; the formal quotation confirms price, freight and availability.",
     "rfq.update": "Update RFQ quantity",
+    "unit.t": "t",
+    "card.tierBadge": "Up to −{pct}% on volume",
+    "theme.dark": "Dark",
+    "theme.light": "Light",
   },
   ar: {
     "nav.products": "قائمة الأسعار",
@@ -179,7 +182,6 @@ const I18N = {
     "card.available": "متاح",
     "card.add": "إضافة",
     "card.notify": "أخبرني عند التوفر",
-    "card.volume": "خصومات كمية حتى",
     "market.title": "بيانات السوق المرجعية",
     "market.sub": "أسعار مرجعية لخام الحديد وأكسيد الحديد وباقي خاماتنا، مع تاريخ ومصدر كل سعر. استرشادية فقط — الأسعار التعاقدية تُؤكد مع كل عرض.",
     "market.benchmark": "الخامة",
@@ -284,6 +286,10 @@ const I18N = {
     "rfq.total": "الإجمالي",
     "rfq.note": "قيم استرشادية بسعر القائمة. تُرسل هذه البنود مع طلبك، ويؤكد عرض السعر الرسمي السعر والشحن والتوفر.",
     "rfq.update": "تحديث الكمية في الطلب",
+    "unit.t": "طن",
+    "card.tierBadge": "خصم كمية حتى {pct}%",
+    "theme.dark": "داكن",
+    "theme.light": "فاتح",
   },
 };
 
