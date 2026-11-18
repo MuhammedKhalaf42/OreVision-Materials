@@ -118,7 +118,12 @@ input:focus-visible, select:focus-visible, textarea:focus-visible, button:focus-
 .rfq-check input { position: absolute; opacity: 0; width: 1px; height: 1px; }
 .rfq-check:hover { background: var(--primary-soft); }
 .rfq-check.on { background: var(--primary); color: var(--primary-ink); box-shadow: inset 0 2px 0 rgba(0,0,0,.25); transform: translateY(2px); }
-.rfq-check:has(input:focus-visible) { outline: 2px solid var(--link); outline-offset: 2px; }
+/* keyboard focus ring; :focus-within is the fallback for browsers without :has() */
+.rfq-check:focus-within { outline: 2px solid var(--link); outline-offset: 2px; }
+@supports selector(:has(*)) {
+  .rfq-check:focus-within { outline: none; }
+  .rfq-check:has(input:focus-visible) { outline: 2px solid var(--link); outline-offset: 2px; }
+}
 
 /* ---- Utility bar ---- */
 .utility-bar { background: var(--navy-deep); color: #c9d6e2; font-size: .78rem; }

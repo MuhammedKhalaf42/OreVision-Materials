@@ -622,8 +622,11 @@ function historyRows(p) {
 }
 
 /* ---------- order calculator ---------- */
-// "EXW mine site" → "EXW": the calculator keys its rules on the Incoterm code
-const incotermCode = (term) => String(term || "").trim().slice(0, 3).toUpperCase();
+// "EXW mine site" → "EXW", "Free On Board (FOB)" → "FOB": the calculator keys its rules on the Incoterm code
+const incotermCode = (term) => {
+  const m = /\b(EXW|FCA|FAS|FOB|CFR|CIF|CPT|CIP|DAP|DPU|DDP)\b/i.exec(String(term || ""));
+  return m ? m[1].toUpperCase() : String(term || "").trim().slice(0, 3).toUpperCase();
+};
 
 function calcHTML(p, state) {
   const s = state || {};
@@ -1142,6 +1145,7 @@ function applyI18n() {
     el.placeholder = t(el.dataset.i18nPh);
   });
   $("#langToggle").textContent = lang === "ar" ? "EN" : "عربي";
+  $("#themeToggle").title = $("#themeToggle").textContent; // tooltip follows the language
   $("#lastUpdated").textContent = fmtDate(LAST_UPDATED);
   $("#lastUpdatedTop").textContent = fmtDate(LAST_UPDATED);
   const inc = $("#formIncoterm");
@@ -1196,6 +1200,7 @@ function init() {
     document.documentElement.dataset.theme = dark ? "dark" : "light";
     $("#themeToggle").dataset.i18n = dark ? "theme.light" : "theme.dark";
     $("#themeToggle").textContent = t($("#themeToggle").dataset.i18n);
+    $("#themeToggle").title = t($("#themeToggle").dataset.i18n);
   };
   setTheme(store.str("ov-theme") === "dark");
   $("#themeToggle").addEventListener("click", () => {
